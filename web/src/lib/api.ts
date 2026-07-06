@@ -196,6 +196,96 @@ export async function generateKit(jobTargetId: string, body: KitRequest): Promis
   );
 }
 
+// --- Apply kit -------------------------------------------------------------
+
+export type ApplyKit =
+  paths["/job-targets/{job_target_id}/apply-kit"]["get"]["responses"][200]["content"]["application/json"];
+
+export type ApplyKitField = ApplyKit["field_plan"][number];
+export type ApplyKitFieldSpec = ApplyKitField["field_spec"];
+export type ApplyKitDocument = ApplyKit["documents"][number];
+export type ApplyKitGap = ApplyKit["answer_profile_gaps"][number];
+export type ApplyKitChecklistStep = ApplyKit["checklist"][number];
+export type ApplyKitFieldStatus = ApplyKitChecklistStep["status"];
+
+export async function getApplyKit(jobTargetId: string): Promise<ApplyKit> {
+  return unwrap(
+    await api.GET("/job-targets/{job_target_id}/apply-kit", {
+      params: { path: { job_target_id: jobTargetId } }
+    })
+  );
+}
+
+export async function regenerateApplyKitField(
+  jobTargetId: string,
+  fieldKey: string
+): Promise<ApplyKit> {
+  return unwrap(
+    await api.POST("/job-targets/{job_target_id}/apply-kit/regenerate", {
+      params: { path: { job_target_id: jobTargetId } },
+      body: { field_key: fieldKey }
+    })
+  );
+}
+
+export type TrackRequest = NonNullable<
+  paths["/job-targets/{job_target_id}/track"]["post"]["requestBody"]
+>["content"]["application/json"];
+
+export async function trackJobTarget(
+  jobTargetId: string,
+  status: TrackRequest["status"] = "applied"
+): Promise<ApplicationRead> {
+  return unwrap(
+    await api.POST("/job-targets/{job_target_id}/track", {
+      params: { path: { job_target_id: jobTargetId } },
+      body: { status }
+    })
+  );
+}
+
+// --- Answer profile --------------------------------------------------------
+
+export type AnswerProfileRead =
+  paths["/users/{user_id}/answer-profile"]["get"]["responses"][200]["content"]["application/json"];
+
+export type AnswerProfileWrite = NonNullable<
+  paths["/users/{user_id}/answer-profile"]["put"]["requestBody"]
+>["content"]["application/json"];
+
+/** Returns null when the user has no answer profile yet (404), so callers can
+ * seed the form with defaults instead of treating it as an error. */
+export async function getAnswerProfile(userId: string): Promise<AnswerProfileRead | null> {
+  const response = await api.GET("/users/{user_id}/answer-profile", {
+    params: { path: { user_id: userId } }
+  });
+  if (response.response.status === 404) {
+    return null;
+  }
+  return unwrap(response);
+}
+
+export async function saveAnswerProfile(
+  userId: string,
+  body: AnswerProfileWrite
+): Promise<{ ok: true; data: AnswerProfileRead } | { ok: false; errors: FieldError[] }> {
+  const response = await api.PUT("/users/{user_id}/answer-profile", {
+    params: { path: { user_id: userId } },
+    body
+  });
+  if (response.error) {
+    const detail = (response.error as { detail?: unknown }).detail;
+    if (Array.isArray(detail)) {
+      return { ok: false, errors: detail as FieldError[] };
+    }
+    throw new ApiError(
+      typeof detail === "string" ? detail : "Failed to save answer profile",
+      response.response.status
+    );
+  }
+  return { ok: true, data: response.data as AnswerProfileRead };
+}
+
 // --- Versions --------------------------------------------------------------
 
 export type ResumeVersionListItem =

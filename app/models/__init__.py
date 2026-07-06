@@ -1,6 +1,12 @@
 """SQLAlchemy models. Import them all here so Base.metadata (and Alembic
 autogenerate) always sees the full schema."""
 
+from app.models.answer_profile import (
+    AnswerProfile,
+    RelocationPreference,
+    SalaryType,
+    WorkAuthStatus,
+)
 from app.models.application import Application, ApplicationStatus
 from app.models.bullet_embedding import BulletEmbedding
 from app.models.cover_letter import CoverLetter, CoverLetterTone
@@ -10,10 +16,12 @@ from app.models.job_target import JobTarget
 from app.models.pipeline_run import PipelineRun, PipelineRunStatus
 from app.models.profile import Profile
 from app.models.resume_version import ResumeVersion
+from app.models.short_answer import ShortAnswer, ShortAnswerKind, hash_question
 from app.models.upload import Upload
 from app.models.user import User
 
 __all__ = [
+    "AnswerProfile",
     "Application",
     "ApplicationStatus",
     "BulletEmbedding",
@@ -27,7 +35,13 @@ __all__ = [
     "PipelineRun",
     "PipelineRunStatus",
     "Profile",
+    "RelocationPreference",
     "ResumeVersion",
+    "SalaryType",
+    "ShortAnswer",
+    "ShortAnswerKind",
     "Upload",
     "User",
+    "WorkAuthStatus",
+    "hash_question",
 ]

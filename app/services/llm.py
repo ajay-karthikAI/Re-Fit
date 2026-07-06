@@ -1,6 +1,6 @@
 """The single gateway for all LLM calls (see CLAUDE.md).
 
-Every call goes through the Anthropic SDK with structured outputs validated
+Every call goes through the OpenAI SDK with structured outputs validated
 against Pydantic schemas from app/schemas/. No raw json.loads on model text
 happens anywhere else in the codebase.
 
@@ -14,7 +14,7 @@ from collections.abc import Callable
 from functools import lru_cache
 from typing import Any, TypeVar
 
-from anthropic import AsyncAnthropic
+from openai import AsyncOpenAI
 from pydantic import BaseModel, ValidationError
 
 from app.config import get_settings
@@ -22,7 +22,7 @@ from app.schemas.llm import LLMUsage
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "claude-opus-4-8"
+DEFAULT_MODEL = "gpt-5.5"
 MAX_VALIDATION_RETRIES = 2
 _PLACEHOLDER_KEYS = {"", "changeme"}
 
@@ -35,13 +35,13 @@ T = TypeVar("T", bound=BaseModel)
 
 
 @lru_cache
-def _client() -> AsyncAnthropic:
-    key = get_settings().anthropic_api_key
+def _client() -> AsyncOpenAI:
+    key = get_settings().openai_api_key
     if key not in _PLACEHOLDER_KEYS:
-        return AsyncAnthropic(api_key=key)
-    # Fall back to the SDK's own credential resolution (env var, `ant auth login`
-    # profile) so a placeholder in .env doesn't shadow real credentials.
-    return AsyncAnthropic()
+        return AsyncOpenAI(api_key=key)
+    # Fall back to the SDK's own credential resolution so a placeholder in .env
+    # doesn't shadow real credentials from the process environment.
+    return AsyncOpenAI()
 
 
 async def generate_structured(
@@ -55,14 +55,11 @@ async def generate_structured(
 ) -> tuple[Any, LLMUsage]:
     """One structured-output call, validated against `schema`.
 
-    `schema` should stay free of regex/format constraints — Anthropic's
-    structured-output grammar compiler rejects schemas above a size threshold,
-    and semantic constraints (date patterns, email/URL formats) on nested
-    lists blow that budget. Do that stricter validation in `validate_extra`;
-    a raised ValidationError there is treated the same as a schema-parse
-    failure and feeds back into the retry loop. Its return value (if any)
-    becomes this function's result — otherwise the raw parsed object is
-    returned.
+    `schema` should stay friendly to provider-side structured outputs. Put
+    stricter semantic constraints in `validate_extra`; a raised
+    ValidationError there is treated the same as a schema-parse failure and
+    feeds back into the retry loop. Its return value (if any) becomes this
+    function's result — otherwise the raw parsed object is returned.
 
     Returns the (possibly revalidated) object and total token usage (summed
     across retries). Raises LLMOutputInvalidError when the retry budget is
@@ -70,26 +67,25 @@ async def generate_structured(
     """
     client = _client()
     model = model or DEFAULT_MODEL
-    messages: list[dict[str, Any]] = [{"role": "user", "content": user_content}]
+    messages: list[dict[str, str]] = [{"role": "user", "content": user_content}]
     total = LLMUsage()
     last_error: Exception | None = None
 
     for attempt in range(1 + MAX_VALIDATION_RETRIES):
         response = None
         try:
-            response = await client.messages.parse(
+            response = await client.responses.parse(
                 model=model,
-                max_tokens=max_tokens,
-                system=system,
-                thinking={"type": "adaptive"},
-                messages=messages,
-                output_format=schema,
+                instructions=system,
+                input=messages,
+                max_output_tokens=max_tokens,
+                text_format=schema,
             )
             total = total + LLMUsage(
                 input_tokens=response.usage.input_tokens,
                 output_tokens=response.usage.output_tokens,
             )
-            parsed = response.parsed_output
+            parsed = response.output_parsed
             if parsed is None:
                 raise ValueError("model returned no parseable structured output")
             result = validate_extra(parsed) if validate_extra is not None else parsed
@@ -112,9 +108,7 @@ async def generate_structured(
                 exc,
             )
             if response is not None:
-                raw_text = next(
-                    (block.text for block in response.content if block.type == "text"), ""
-                )
+                raw_text = response.output_text
                 if raw_text:
                     messages.append({"role": "assistant", "content": raw_text})
             messages.append(

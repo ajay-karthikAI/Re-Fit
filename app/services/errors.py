@@ -27,3 +27,18 @@ class KitMissingPiecesError(Exception):
     def __init__(self, missing_pieces: list[str]) -> None:
         self.missing_pieces = missing_pieces
         super().__init__("application kit is missing required pieces")
+
+
+class NeedsAnswerProfileError(Exception):
+    """A form question asks for a fact only the user knows (salary, work
+    authorization, start date, relocation). We refuse to generate prose for it
+    and point the caller at the AnswerProfile field to fill in instead (HTTP 422).
+    """
+
+    def __init__(self, answer_profile_field: str, question: str) -> None:
+        self.answer_profile_field = answer_profile_field
+        self.question = question
+        super().__init__(
+            f"question requires the user-owned fact '{answer_profile_field}' from the "
+            "answer profile; it must not be generated"
+        )

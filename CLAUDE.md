@@ -18,12 +18,32 @@ backstory, or enthusiasm narratives. Phrases like "your award-winning platform"
 are bugs unless the job target itself says that. `tests/test_fabrication.py`
 must include prose fabrication cases and must stay green.
 
+**The fabrication boundary extends to ATS short-answer form responses.**
+Short answers like "why this company" or "why this role" follow the same
+evidence-pack + `verify_prose` discipline as cover letters — grounded only in
+the user's profile and the job target's `raw_description`. But some form
+fields are **facts only the user knows** — salary expectation, work
+authorization, sponsorship needs, notice period — not facts the LLM can
+derive from evidence. For these, the system must never guess a
+plausible-sounding default. A missing `AnswerProfile` field renders as an
+explicit "add this" prompt to the user, never a filled-in guess.
+
 ## Domain concepts
 
 - An **ApplicationKit** is the bundle for one job target: tailored resume version,
   cover letter, and follow-up email.
 - The ApplicationKit, not the resume alone, is the unit users generate and the
   tracker displays.
+- An **AnswerProfile** holds durable, user-owned facts that are not part of the
+  resume but are needed on every application form: work authorization status,
+  sponsorship needs, salary expectation/range, willingness to relocate, notice
+  period, pronouns, veteran/disability/EEO self-ID preferences, and a default
+  referral source. It is stored once per user and reused across every kit —
+  this is the single biggest time-save in the assisted-apply flow. Never make
+  the user retype it.
+- Common ATS form schemas (Greenhouse, Lever, Ashby field taxonomies) are a
+  known, finite set — encode them directly as reference data rather than
+  re-deriving field structure per job application.
 
 ## Tooling
 
@@ -59,6 +79,10 @@ must include prose fabrication cases and must stay green.
   backend boundary.
 - API types are generated from the FastAPI OpenAPI schema with
   `openapi-typescript`; regenerate them with `make api-types`.
+- The assisted-apply kit UI is copy-heavy (one-click-copy fields for answer
+  profile values and short answers): use the Clipboard API via a small shared
+  `useCopyField` hook, and always show a toast confirmation per field — never
+  a silent copy.
 
 ## Database conventions
 
@@ -77,12 +101,12 @@ must include prose fabrication cases and must stay green.
   - `S3_ENDPOINT_URL`
   - `AWS_ACCESS_KEY_ID`
   - `AWS_SECRET_ACCESS_KEY`
-  - `ANTHROPIC_API_KEY`
+  - `OPENAI_API_KEY`
 
 ## LLM usage
 
 - All LLM calls go through **one module**: `app/services/llm.py`, using the
-  Anthropic SDK with structured outputs (tool-use or response_format) validated
+  OpenAI SDK with structured outputs validated
   against Pydantic schemas from `app/schemas/`. **No raw `json.loads` on model
   text anywhere else in the codebase.**
 - Every LLM-calling function takes an optional model override and returns both

@@ -15,6 +15,7 @@ from app.services.errors import (
     ConflictError,
     FileTooLargeError,
     KitMissingPiecesError,
+    NeedsAnswerProfileError,
     NotFoundError,
     ProseVerificationError,
     UnsupportedFormatError,
@@ -63,6 +64,19 @@ async def _kit_missing_handler(request: Request, exc: KitMissingPiecesError) -> 
     )
 
 
+async def _needs_answer_profile_handler(
+    request: Request, exc: NeedsAnswerProfileError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": str(exc),
+            "answer_profile_field": exc.answer_profile_field,
+            "question": exc.question,
+        },
+    )
+
+
 def create_app() -> FastAPI:
     app = FastAPI(title="refit", lifespan=lifespan)
     settings = get_settings()
@@ -87,6 +101,7 @@ def create_app() -> FastAPI:
     app.add_exception_handler(UnsupportedFormatError, _unsupported_format_handler)  # type: ignore[arg-type]
     app.add_exception_handler(ProseVerificationError, _prose_verification_handler)  # type: ignore[arg-type]
     app.add_exception_handler(KitMissingPiecesError, _kit_missing_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(NeedsAnswerProfileError, _needs_answer_profile_handler)  # type: ignore[arg-type]
 
     @app.get("/health")
     async def health(request: Request) -> dict[str, str]:

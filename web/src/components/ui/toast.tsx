@@ -11,7 +11,7 @@ type Toast = {
 };
 
 type ToastContextValue = {
-  toast: (message: string, variant?: ToastVariant) => void;
+  toast: (message: string, variant?: ToastVariant, ttlMs?: number) => void;
 };
 
 const ToastContext = createContext<ToastContextValue | null>(null);
@@ -22,13 +22,16 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const nextId = useRef(0);
 
-  const toast = useCallback((message: string, variant: ToastVariant = "error") => {
-    const id = nextId.current++;
-    setToasts((current) => [...current, { id, message, variant }]);
-    setTimeout(() => {
-      setToasts((current) => current.filter((item) => item.id !== id));
-    }, TOAST_TTL_MS);
-  }, []);
+  const toast = useCallback(
+    (message: string, variant: ToastVariant = "error", ttlMs: number = TOAST_TTL_MS) => {
+      const id = nextId.current++;
+      setToasts((current) => [...current, { id, message, variant }]);
+      setTimeout(() => {
+        setToasts((current) => current.filter((item) => item.id !== id));
+      }, ttlMs);
+    },
+    []
+  );
 
   const value = useMemo(() => ({ toast }), [toast]);
 

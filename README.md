@@ -37,7 +37,7 @@ The invariant is enforced in code by `app/services/claims.py` and protected by
 - Postgres 16 with pgvector
 - Redis + Celery
 - MinIO/S3-compatible document storage
-- Anthropic SDK for structured LLM calls
+- OpenAI SDK for structured LLM calls
 - Jinja2 + WeasyPrint for PDF rendering
 - python-docx for DOCX rendering
 - pytest, pytest-asyncio, Ruff
@@ -119,11 +119,11 @@ S3_BUCKET=refit-dev
 S3_ENDPOINT_URL=http://localhost:9000
 AWS_ACCESS_KEY_ID=minioadmin
 AWS_SECRET_ACCESS_KEY=minioadmin
-ANTHROPIC_API_KEY=changeme
+OPENAI_API_KEY=changeme
 ```
 
 Local MinIO creates the target bucket on first storage use. Set a real
-`ANTHROPIC_API_KEY` for LLM-backed extraction, tailoring, cover letters, and the
+`OPENAI_API_KEY` for LLM-backed extraction, tailoring, cover letters, and the
 full eval harness.
 
 ## Common Commands

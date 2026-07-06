@@ -10,6 +10,7 @@ from app.schemas.jd import JobRequirements, RequirementItem
 from app.schemas.llm import LLMUsage
 from app.schemas.resume import StructuredResume
 from app.services import cover_letter as cover_letter_service
+from app.services import evidence as evidence_service
 from app.services.render import render_cover_letter_docx_result, render_cover_letter_pdf_result
 
 CORPUS_JD = Path(__file__).parent / "corpus" / "jds" / "synthetic_backend_jd.txt"
@@ -176,7 +177,7 @@ async def test_generate_cover_letter_corpus_pair(
             LLMUsage(input_tokens=100, output_tokens=200),
         )
 
-    monkeypatch.setattr(cover_letter_service, "_embed", _fake_embed)
+    monkeypatch.setattr(evidence_service, "_embed", _fake_embed)
     monkeypatch.setattr(cover_letter_service, "_generate_once", fake_generate_once)
 
     profile = StructuredResume.model_validate(CORPUS_RESUME)

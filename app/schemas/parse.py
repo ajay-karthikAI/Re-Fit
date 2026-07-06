@@ -60,9 +60,8 @@ class LLMStructuredResume(BaseModel):
 
     Strict validation (YYYY-MM date regex, email/URL formats, bullet length
     limits) happens in Python after the call, via StructuredResume.model_validate.
-    Putting those constraints directly in the JSON schema handed to the model
-    makes Anthropic's structured-output grammar too large to compile
-    ("The compiled grammar is too large" 400).
+    Keep the provider-side structured-output schema smaller and move strict
+    semantic validation into Python with StructuredResume.model_validate.
     """
 
     model_config = ConfigDict(extra="forbid")

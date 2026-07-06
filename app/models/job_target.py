@@ -20,6 +20,9 @@ class JobTarget(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     company: Mapped[str | None]
     title: Mapped[str | None]
     source_url: Mapped[str | None]
+    source_ats: Mapped[str] = mapped_column(default="unknown", server_default="unknown")
+    """ATS detected from source_url at creation time (see app/data/ats_fields.py).
+    One of greenhouse/lever/ashby/unknown; drives the assisted-apply field plan."""
     raw_description: Mapped[str] = mapped_column(Text)
     extracted_requirements: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     """Filled in later by the LLM requirement-extraction step."""

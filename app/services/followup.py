@@ -15,13 +15,13 @@ from app.schemas.jd import JobRequirements
 from app.schemas.llm import LLMUsage
 from app.schemas.resume import StructuredResume
 from app.services.claims import verify_prose
-from app.services.cover_letter import (
+from app.services.evidence import (
     EvidencePack,
-    _build_evidence_pack,
-    _evidence_pack_for_prompt,
-    _guess_company_or_team,
-    _guess_title,
-    _word_count,
+    build_evidence_pack as _build_evidence_pack,
+    evidence_pack_for_prompt as _evidence_pack_for_prompt,
+    guess_company_or_team as _guess_company_or_team,
+    guess_title as _guess_title,
+    word_count as _word_count,
 )
 from app.services.errors import ConflictError, NotFoundError, ProseVerificationError
 from app.services.jd import extract_requirements

@@ -1,6 +1,6 @@
-"""End-to-end parser tests against the real Anthropic API.
+"""End-to-end parser tests against the real OpenAI API.
 
-Skipped when no usable ANTHROPIC_API_KEY is available (unset, or still the
+Skipped when no usable OPENAI_API_KEY is available (unset, or still the
 .env placeholder). These cost real tokens.
 """
 
@@ -19,14 +19,14 @@ _PLACEHOLDER_KEYS = {"", "changeme"}
 
 
 def _api_key_available() -> bool:
-    env_key = os.environ.get("ANTHROPIC_API_KEY", "")
-    settings_key = get_settings().anthropic_api_key
+    env_key = os.environ.get("OPENAI_API_KEY", "")
+    settings_key = get_settings().openai_api_key
     return env_key not in _PLACEHOLDER_KEYS or settings_key not in _PLACEHOLDER_KEYS
 
 
 pytestmark = [
     pytest.mark.integration,
-    pytest.mark.skipif(not _api_key_available(), reason="ANTHROPIC_API_KEY is unset"),
+    pytest.mark.skipif(not _api_key_available(), reason="OPENAI_API_KEY is unset"),
 ]
 
 

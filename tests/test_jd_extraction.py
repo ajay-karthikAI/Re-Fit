@@ -1,6 +1,6 @@
-"""JD requirement-extraction integration tests against the real Anthropic API.
+"""JD requirement-extraction integration tests against the real OpenAI API.
 
-Skipped without a usable ANTHROPIC_API_KEY. Runs over every .txt in
+Skipped without a usable OPENAI_API_KEY. Runs over every .txt in
 tests/corpus/jds/ (synthetic placeholders now; real JDs as they land).
 """
 
@@ -19,14 +19,14 @@ SENIORITY_VALUES = {"intern", "junior", "mid", "senior", "staff", "lead", "unkno
 
 
 def _api_key_available() -> bool:
-    env_key = os.environ.get("ANTHROPIC_API_KEY", "")
-    settings_key = get_settings().anthropic_api_key
+    env_key = os.environ.get("OPENAI_API_KEY", "")
+    settings_key = get_settings().openai_api_key
     return env_key not in _PLACEHOLDER_KEYS or settings_key not in _PLACEHOLDER_KEYS
 
 
 pytestmark = [
     pytest.mark.integration,
-    pytest.mark.skipif(not _api_key_available(), reason="ANTHROPIC_API_KEY is unset"),
+    pytest.mark.skipif(not _api_key_available(), reason="OPENAI_API_KEY is unset"),
 ]
 
 

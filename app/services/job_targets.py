@@ -3,6 +3,7 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.data.ats_fields import detect_ats
 from app.models import JobTarget, ResumeVersion
 from app.schemas.jd import JDExtractionResult
 from app.schemas.job_target import JobTargetCreate, JobTargetListItem
@@ -15,7 +16,11 @@ async def create_job_target(
     session: AsyncSession, user_id: uuid.UUID, payload: JobTargetCreate
 ) -> JobTarget:
     await get_user(session, user_id)
-    job_target = JobTarget(user_id=user_id, **payload.model_dump())
+    job_target = JobTarget(
+        user_id=user_id,
+        source_ats=detect_ats(payload.source_url),
+        **payload.model_dump(),
+    )
     session.add(job_target)
     await session.commit()
     await session.refresh(job_target)
@@ -29,9 +34,7 @@ async def get_job_target(session: AsyncSession, job_target_id: uuid.UUID) -> Job
     return job_target
 
 
-async def list_job_targets(
-    session: AsyncSession, user_id: uuid.UUID
-) -> list[JobTargetListItem]:
+async def list_job_targets(session: AsyncSession, user_id: uuid.UUID) -> list[JobTargetListItem]:
     await get_user(session, user_id)
     has_kit = (
         select(ResumeVersion.id)

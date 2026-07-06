@@ -15,7 +15,7 @@ dependencies = [
     "redis>=8.0.1",
     "sqlalchemy[asyncio]>=2.0.51",
     "uvicorn[standard]>=0.50.0",
-    "anthropic>=0.116.0",
+    "openai>=2.44.0",
     "pgvector>=0.4.2",
     "numpy>=2.5.1",
     "weasyprint>=69.0",
@@ -47,4 +47,3 @@ markers = [
 [tool.ruff]
 target-version = "py312"
 line-length = 100
-

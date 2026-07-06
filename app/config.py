@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     s3_endpoint_url: str
     aws_access_key_id: str
     aws_secret_access_key: str
-    anthropic_api_key: str
+    openai_api_key: str
     relevance_threshold: float = 0.45
     max_rewrites: int = 8
     llm_input_cost_per_million: float = 0.0

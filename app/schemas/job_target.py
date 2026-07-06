@@ -22,6 +22,7 @@ class JobTargetRead(BaseModel):
     company: str | None
     title: str | None
     source_url: str | None
+    source_ats: str
     raw_description: str
     extracted_requirements: dict[str, Any] | None
     created_at: datetime
