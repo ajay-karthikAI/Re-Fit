@@ -1,0 +1,86 @@
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from redis.asyncio import Redis
+from sqlalchemy import text
+
+from app.config import get_settings
+from app.db import dispose_engine, get_session_factory
+from app.routers import applications, job_targets, pipeline, profiles, uploads, users, versions
+from app.services.errors import (
+    ConflictError,
+    FileTooLargeError,
+    NotFoundError,
+    ProseVerificationError,
+    UnsupportedFormatError,
+)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    app.state.redis = Redis.from_url(get_settings().redis_url)
+    yield
+    await app.state.redis.aclose()
+    await dispose_engine()
+
+
+async def _not_found_handler(request: Request, exc: NotFoundError) -> JSONResponse:
+    return JSONResponse(status_code=404, content={"detail": str(exc)})
+
+
+async def _conflict_handler(request: Request, exc: ConflictError) -> JSONResponse:
+    return JSONResponse(status_code=409, content={"detail": str(exc)})
+
+
+async def _too_large_handler(request: Request, exc: FileTooLargeError) -> JSONResponse:
+    return JSONResponse(status_code=413, content={"detail": str(exc)})
+
+
+async def _unsupported_format_handler(
+    request: Request, exc: UnsupportedFormatError
+) -> JSONResponse:
+    return JSONResponse(status_code=415, content={"detail": str(exc)})
+
+
+async def _prose_verification_handler(
+    request: Request, exc: ProseVerificationError
+) -> JSONResponse:
+    return JSONResponse(status_code=422, content={"detail": str(exc)})
+
+
+def create_app() -> FastAPI:
+    app = FastAPI(title="refit", lifespan=lifespan)
+    app.include_router(users.router)
+    app.include_router(profiles.router)
+    app.include_router(applications.router)
+    app.include_router(uploads.router)
+    app.include_router(job_targets.router)
+    app.include_router(versions.router)
+    app.include_router(pipeline.router)
+    app.add_exception_handler(NotFoundError, _not_found_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(ConflictError, _conflict_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(FileTooLargeError, _too_large_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(UnsupportedFormatError, _unsupported_format_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(ProseVerificationError, _prose_verification_handler)  # type: ignore[arg-type]
+
+    @app.get("/health")
+    async def health(request: Request) -> dict[str, str]:
+        postgres = "ok"
+        try:
+            async with get_session_factory()() as session:
+                await session.execute(text("SELECT 1"))
+        except Exception:
+            postgres = "unreachable"
+
+        redis_status = "ok"
+        try:
+            await request.app.state.redis.ping()
+        except Exception:
+            redis_status = "unreachable"
+
+        overall = "ok" if postgres == "ok" and redis_status == "ok" else "degraded"
+        return {"status": overall, "postgres": postgres, "redis": redis_status}
+
+    return app

@@ -1,0 +1,50 @@
+[project]
+name = "refit"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.18.5",
+    "asyncpg>=0.31.0",
+    "boto3>=1.43.40",
+    "fastapi>=0.139.0",
+    "httpx>=0.28.1",
+    "pydantic[email]>=2.13.4",
+    "pydantic-settings>=2.14.2",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "redis>=8.0.1",
+    "sqlalchemy[asyncio]>=2.0.51",
+    "uvicorn[standard]>=0.50.0",
+    "anthropic>=0.116.0",
+    "pgvector>=0.4.2",
+    "numpy>=2.5.1",
+    "weasyprint>=69.0",
+    "python-docx>=1.2.0",
+    "pymupdf>=1.28.0",
+    "docx2python>=3.6.2",
+    "jinja2>=3.1.6",
+    "rapidfuzz>=3.14.5",
+    "python-multipart>=0.0.32",
+    "sentence-transformers>=5.6.0",
+    "celery>=5.4.0",
+    "pyyaml>=6.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.20",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = [
+    "integration: tests that call external paid APIs (skipped without credentials)",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+

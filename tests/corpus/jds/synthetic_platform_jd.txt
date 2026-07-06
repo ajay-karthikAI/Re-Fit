@@ -1,0 +1,21 @@
+Staff Platform Engineer - Northstar Cloud (Remote, US)
+
+Northstar Cloud builds deployment and reliability tooling for developer teams.
+
+What you'll do
+- Build internal platform services in Go and Python
+- Operate Kubernetes clusters on AWS
+- Improve CI/CD, infrastructure automation, and release safety
+- Partner with product and security teams on developer experience
+
+Minimum qualifications (required)
+- 7+ years building production software or infrastructure platforms
+- Strong Kubernetes experience
+- Strong AWS experience
+- Terraform or another infrastructure-as-code tool
+- Clear written communication and incident review experience
+
+Nice to have
+- Datadog, OpenTelemetry, or other observability tooling
+- Experience with gRPC services
+- Prior work supporting high-throughput backend systems

@@ -1,0 +1,23 @@
+Machine Learning Engineer — Halcyon Health (Hybrid, Boston)
+
+Halcyon Health applies machine learning to clinical scheduling. We're a
+40-person startup with real hospital customers and HIPAA obligations.
+
+The role
+You'll join a four-person ML team building no-show prediction and capacity
+forecasting models, taking them from notebooks to production services.
+
+You should have
+- 2-4 years of experience training and shipping ML models in Python
+- Solid grounding in scikit-learn and either PyTorch or TensorFlow
+- SQL fluency and comfort working directly with messy healthcare data
+- Experience deploying models behind APIs (we use FastAPI and Docker)
+
+Preferred qualifications
+- Experience with MLflow or another experiment-tracking tool
+- Familiarity with HIPAA or other regulated-data environments
+- Airflow or Dagster pipeline experience
+
+We're a collaborative, low-ego team. You'll present model results to
+clinicians, so the ability to explain technical tradeoffs to non-engineers
+matters as much as modeling skill.

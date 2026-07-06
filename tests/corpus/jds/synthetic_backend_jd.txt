@@ -1,0 +1,27 @@
+Senior Backend Engineer — Corvid Logistics (Remote, US)
+
+About us
+Corvid Logistics builds routing and dispatch software for regional freight
+carriers. Our platform handles 40M shipment events per day.
+
+What you'll do
+- Own services in our Python/FastAPI backend, from design through production
+- Design PostgreSQL schemas and tune queries under heavy write load
+- Build and operate event pipelines on Kafka
+- Work with product to scope features; mentor two mid-level engineers
+
+Minimum qualifications (required)
+- 6+ years building production backend systems
+- Expert-level Python; we use Python everywhere, and deep Python fluency is
+  non-negotiable
+- Strong PostgreSQL experience: schema design, indexing, query plans
+- Experience running services on AWS (ECS or EKS)
+- Clear written communication in a remote-first team
+
+Nice to have
+- Kafka or another event-streaming system
+- Terraform, Datadog, or general observability experience
+- Prior work in logistics, supply chain, or another operationally-heavy domain
+
+We value engineers who take ownership, communicate proactively, and leave
+codebases better than they found them.

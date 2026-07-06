@@ -1,0 +1,22 @@
+Backend API Engineer - Harbor Scheduling (Remote, US)
+
+Harbor Scheduling builds appointment and capacity planning software for
+healthcare and logistics customers.
+
+What you'll do
+- Build REST and gRPC APIs for scheduling workflows
+- Design PostgreSQL schemas and optimize query performance
+- Deploy containerized services to Kubernetes or ECS
+- Collaborate with product managers on customer-facing features
+
+Minimum qualifications (required)
+- 4+ years building backend APIs
+- Strong Python or Go experience
+- PostgreSQL schema design and query tuning
+- Experience running services on AWS
+- Strong ownership of testing and production support
+
+Nice to have
+- Django, FastAPI, or similar web frameworks
+- Kafka or other event-driven architecture experience
+- Healthcare or logistics domain experience

@@ -1,0 +1,22 @@
+Senior Data Platform Engineer - Meridian Retail (Hybrid, New York)
+
+Meridian Retail runs analytics products for merchandising, logistics, and
+finance teams.
+
+What you'll do
+- Design data pipelines in Python and SQL
+- Build dbt models and orchestrate workflows in Dagster or Airflow
+- Tune Snowflake warehouse usage and improve data quality checks
+- Support stakeholder-facing dashboards and operational reporting
+
+Minimum qualifications (required)
+- 5+ years working on production data platforms
+- Strong SQL and Python experience
+- Experience with dbt
+- Experience with Snowflake or another cloud data warehouse
+- Clear documentation habits and stakeholder communication
+
+Nice to have
+- Dagster, Airflow, or similar orchestration tools
+- Terraform experience
+- Familiarity with OpenLineage or data observability

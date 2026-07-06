@@ -1,0 +1,35 @@
+note: >
+  Synthetic Phase 1 eval matrix. The current corpus has 2 synthetic resumes;
+  they are crossed with 5 synthetic JDs to create 10 pairs. Replace these with
+  10 real resumes and 5 real JDs before tagging phase-1.
+pairs:
+  - id: two_column_backend
+    resume: resumes/synthetic_two_column.pdf
+    jd: jds/synthetic_backend_jd.txt
+  - id: two_column_ml
+    resume: resumes/synthetic_two_column.pdf
+    jd: jds/synthetic_ml_jd.txt
+  - id: two_column_platform
+    resume: resumes/synthetic_two_column.pdf
+    jd: jds/synthetic_platform_jd.txt
+  - id: two_column_data_platform
+    resume: resumes/synthetic_two_column.pdf
+    jd: jds/synthetic_data_platform_jd.txt
+  - id: two_column_api
+    resume: resumes/synthetic_two_column.pdf
+    jd: jds/synthetic_api_jd.txt
+  - id: table_layout_backend
+    resume: resumes/synthetic_table_layout.docx
+    jd: jds/synthetic_backend_jd.txt
+  - id: table_layout_ml
+    resume: resumes/synthetic_table_layout.docx
+    jd: jds/synthetic_ml_jd.txt
+  - id: table_layout_platform
+    resume: resumes/synthetic_table_layout.docx
+    jd: jds/synthetic_platform_jd.txt
+  - id: table_layout_data_platform
+    resume: resumes/synthetic_table_layout.docx
+    jd: jds/synthetic_data_platform_jd.txt
+  - id: table_layout_api
+    resume: resumes/synthetic_table_layout.docx
+    jd: jds/synthetic_api_jd.txt
