@@ -6,7 +6,7 @@ fabricate candidate experience.
 Re-Fit parses resumes, extracts job requirements, embeds and scores resume
 content, safely tailors weak resume bullets, renders ATS-friendly documents, and
 generates evidence-checked cover letters. The current repository is a FastAPI
-backend; the Next.js frontend is planned for Phase 2 under `web/`.
+backend with a Phase 2 Next.js frontend scaffold under `web/`.
 
 ## What It Does
 
@@ -42,6 +42,7 @@ The invariant is enforced in code by `app/services/claims.py` and protected by
 - python-docx for DOCX rendering
 - pytest, pytest-asyncio, Ruff
 - uv for dependency management
+- Next.js 14, TypeScript, Tailwind, pnpm
 
 ## Quick Start
 
@@ -79,6 +80,34 @@ Run the worker in a second terminal when using `/pipeline/runs`:
 make worker
 ```
 
+## Frontend Dev
+
+The frontend lives in `web/` and talks only to FastAPI.
+
+First install frontend dependencies:
+
+```bash
+cd web
+corepack pnpm install
+```
+
+Run the backend and frontend in separate terminals:
+
+```bash
+make dev      # FastAPI at http://localhost:8100
+make dev-web  # Next.js at http://localhost:3000
+```
+
+Generate typed API bindings from the running FastAPI app:
+
+```bash
+make api-types
+```
+
+The frontend reads `NEXT_PUBLIC_API_BASE_URL`, defaulting to
+`http://localhost:8100`. Copy `web/.env.example` to `web/.env` only if you need
+to override it.
+
 ## Configuration
 
 Config is loaded from `.env` via `pydantic-settings`.
@@ -103,10 +132,12 @@ full eval harness.
 make up        # Start Postgres, Redis, and MinIO
 make down      # Stop local services
 make dev       # Start FastAPI on port 8100
+make dev-web   # Start the Next.js frontend on port 3000
 make worker    # Start the Celery worker
 make test      # Run pytest
 make lint      # Run Ruff lint + format check
 make eval      # Run the Phase 1 corpus eval harness
+make api-types # Regenerate web/src/lib/api-types.ts
 ```
 
 ## API Surface
@@ -223,7 +254,7 @@ The classic resume template lives in `templates/resume/classic/`.
 
 ## Frontend Status
 
-The frontend is not committed yet. Phase 2 calls for a Next.js 14 App Router app
-with TypeScript and Tailwind under `web/`. The frontend must call FastAPI only;
-it should never call the LLM provider or object storage directly.
-
+The committed Phase 2 scaffold is a Next.js 14 App Router app with TypeScript,
+Tailwind, React Query, a typed OpenAPI fetch client, and a dev user picker. It
+uses dark mode as the default design baseline. The frontend must call FastAPI
+only; it should never call the LLM provider or object storage directly.

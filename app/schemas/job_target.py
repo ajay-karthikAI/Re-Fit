@@ -25,3 +25,18 @@ class JobTargetRead(BaseModel):
     raw_description: str
     extracted_requirements: dict[str, Any] | None
     created_at: datetime
+
+
+class JobTargetListItem(BaseModel):
+    """Lightweight job-target row for the list screen (no raw description body)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: UUID
+    company: str | None
+    title: str | None
+    source_url: str | None
+    created_at: datetime
+    has_requirements: bool
+    has_kit: bool
+    """A tailored resume version already exists for this job target."""

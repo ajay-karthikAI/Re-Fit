@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.services.templates import TemplateId
+
 
 RenderFormat = Literal["pdf", "docx"]
 
@@ -11,7 +13,9 @@ class RenderRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     format: RenderFormat
-    template: Literal["classic"] = "classic"
+    template: TemplateId | None = None
+    template_variables: dict[str, str | float] | None = None
+    font_scale: float | None = None
     font: str | None = None
     accent_color: str | None = None
 

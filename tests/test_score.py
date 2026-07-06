@@ -1,9 +1,14 @@
 import numpy as np
+import pytest
 from pytest import MonkeyPatch
 
 from app.schemas.jd import JobRequirements, RequirementItem
 from app.schemas.resume import StructuredResume
+from app.services import render as render_service
 from app.services import score as score_service
+from app.services.templates import list_template_specs
+
+TEMPLATE_IDS = [spec.id for spec in list_template_specs()]
 
 
 def _zero_embed(texts: list[str]) -> np.ndarray:
@@ -100,6 +105,19 @@ def test_format_health_is_populated_by_default_renderer() -> None:
     assert score.format_health.renderer_available
     assert component.included
     assert component.weighted_points is not None
+
+
+@pytest.mark.parametrize("template_id", TEMPLATE_IDS)
+def test_format_health_round_trip_survives_all_templates(template_id: str) -> None:
+    score = score_service.score_resume(
+        _resume(),
+        _requirements(include_terms=False),
+        renderer=render_service.TemplateResumeRenderer(template_id),  # type: ignore[arg-type]
+    )
+
+    assert score.format_health.match_rate is not None
+    assert score.format_health.match_rate >= 0.95
+    assert score.format_health.score == 100.0
 
 
 def test_four_page_resume_is_length_penalized() -> None:

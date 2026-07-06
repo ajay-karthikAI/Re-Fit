@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ resume.contact.full_name }}</title>
+  <style>
+    @page {
+      size: Letter;
+      margin: {{ margin_in }}in;
+      {% if show_page_numbers %}
+      @bottom-center {
+        content: "Page " counter(page) " of " counter(pages);
+        color: #666;
+        font-family: {{ font_stack | safe }};
+        font-size: 8pt;
+      }
+      {% endif %}
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      color: {{ style.body_color }};
+      font-family: {{ font_stack | safe }};
+      font-size: {{ base_font_size }}pt;
+      line-height: {{ style.body_line_height }};
+      margin: 0;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    ul {
+      margin: {{ style.ul_margin_top }}in 0 0 {{ style.ul_margin_left }}in;
+      padding: 0;
+    }
+
+    li {
+      margin: {{ style.li_margin_y }}in 0;
+      padding-left: 0.03in;
+    }
+
+    .header {
+      border-bottom: {{ style.header_rule_width }}pt solid {{ accent_color }};
+      margin-bottom: {{ style.header_margin_bottom }}in;
+      padding-bottom: {{ style.header_padding_bottom }}in;
+      text-align: {{ style.header_align }};
+    }
+
+    .name {
+      color: {{ style.name_color }};
+      font-family: {{ heading_font_stack | safe }};
+      font-size: {{ base_font_size + style.name_size_delta }}pt;
+      font-weight: {{ style.name_weight }};
+      letter-spacing: {{ style.name_letter_spacing }}pt;
+      line-height: 1.05;
+      text-transform: {{ style.name_transform }};
+    }
+
+    .contact {
+      color: #333;
+      font-family: {{ contact_font_stack | safe }};
+      font-size: {{ base_font_size - style.contact_size_delta }}pt;
+      margin-top: {{ style.contact_margin_top }}in;
+    }
+
+    .section {
+      margin-top: {{ style.section_margin_top }}in;
+    }
+
+    .section-title {
+      border-bottom: {{ style.section_rule_width }}pt solid {{ style.section_rule_color }};
+      color: {{ style.section_title_color }};
+      font-family: {{ heading_font_stack | safe }};
+      font-size: {{ base_font_size + style.section_title_size_delta }}pt;
+      font-weight: {{ style.section_title_weight }};
+      letter-spacing: {{ style.section_letter_spacing }}pt;
+      margin-bottom: {{ style.section_title_margin_bottom }}in;
+      padding-bottom: {{ style.section_title_padding_bottom }}in;
+      text-transform: uppercase;
+    }
+
+    .item {
+      break-inside: avoid;
+      margin-top: {{ style.item_margin_top }}in;
+    }
+
+    .item:first-child {
+      margin-top: 0;
+    }
+
+    .item-header {
+      align-items: baseline;
+      display: flex;
+      gap: 0.12in;
+      justify-content: space-between;
+    }
+
+    .item-title {
+      font-weight: 700;
+    }
+
+    .item-meta {
+      color: #555;
+      font-size: {{ base_font_size - 1 }}pt;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .item-subtitle {
+      color: #333;
+      font-style: italic;
+      margin-top: {{ style.subtitle_margin_top }}in;
+    }
+
+    .detail-line {
+      color: #333;
+      font-size: {{ base_font_size - 0.5 }}pt;
+      margin-top: {{ style.detail_margin_top }}in;
+    }
+
+    .skills-group {
+      margin-top: {{ style.skills_margin_top }}in;
+    }
+
+    .skills-category {
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1 class="name">{{ resume.contact.full_name }}</h1>
+    <p class="contact">{{ contact_line }}</p>
+  </header>
+
+  {% if resume.summary %}
+  <section class="section">
+    <h2 class="section-title">SUMMARY</h2>
+    <p>{{ resume.summary }}</p>
+  </section>
+  {% endif %}
+
+  {% if resume.experience %}
+  <section class="section">
+    <h2 class="section-title">EXPERIENCE</h2>
+    {% for item in resume.experience %}
+    <article class="item">
+      <div class="item-header">
+        <p class="item-title">{{ item.title }} - {{ item.company }}</p>
+        <p class="item-meta">{{ format_date_range(item.start_date, item.end_date) }}</p>
+      </div>
+      {% if item.location %}
+      <p class="item-subtitle">{{ item.location }}</p>
+      {% endif %}
+      <ul>
+        {% for bullet in item.bullets %}
+        <li>{{ bullet }}</li>
+        {% endfor %}
+      </ul>
+      {% if item.technologies %}
+      <p class="detail-line"><strong>Technologies:</strong> {{ item.technologies | join(", ") }}</p>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if resume.education %}
+  <section class="section">
+    <h2 class="section-title">EDUCATION</h2>
+    {% for item in resume.education %}
+    <article class="item">
+      <div class="item-header">
+        <p class="item-title">{{ item.degree }}{% if item.field %}, {{ item.field }}{% endif %}</p>
+        {% if item.graduation_date %}
+        <p class="item-meta">{{ item.graduation_date }}</p>
+        {% endif %}
+      </div>
+      <p class="item-subtitle">{{ item.institution }}</p>
+      {% if item.details %}
+      <ul>
+        {% for detail in item.details %}
+        <li>{{ detail }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if resume.skills %}
+  <section class="section">
+    <h2 class="section-title">SKILLS</h2>
+    {% for group in resume.skills %}
+    <p class="skills-group"><span class="skills-category">{{ group.category }}:</span> {{ group.items | join(", ") }}</p>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if resume.projects %}
+  <section class="section">
+    <h2 class="section-title">PROJECTS</h2>
+    {% for project in resume.projects %}
+    <article class="item">
+      <div class="item-header">
+        <p class="item-title">{{ project.name }}</p>
+        {% if project.url %}
+        <p class="item-meta">{{ project.url }}</p>
+        {% endif %}
+      </div>
+      {% if project.description %}
+      <p class="item-subtitle">{{ project.description }}</p>
+      {% endif %}
+      {% if project.bullets %}
+      <ul>
+        {% for bullet in project.bullets %}
+        <li>{{ bullet }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% if project.technologies %}
+      <p class="detail-line"><strong>Technologies:</strong> {{ project.technologies | join(", ") }}</p>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+</body>
+</html>

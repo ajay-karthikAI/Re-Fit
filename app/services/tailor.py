@@ -24,16 +24,17 @@ from app.schemas.tailor import (
     BulletRewrite,
     DiscardedRewrite,
     ExperienceRewriteOutput,
-    TailorDiffEntry,
     TailorResult,
     TailorStats,
 )
 from app.services.claims import build_tech_lexicon, verify_rewrite
+from app.services.diffing import diff_structured_resumes
 from app.services.errors import ConflictError, NotFoundError
 from app.services.embeddings import embed_texts
 from app.services.jd import extract_requirements
 from app.services.llm import generate_structured
 from app.services.score import score_resume
+from app.services.score_cache import build_score_cache
 
 logger = logging.getLogger(__name__)
 
@@ -386,7 +387,7 @@ async def tailor(
     )
     candidate_by_ref = {candidate.bullet_ref: candidate for candidate in candidates}
     tailored = profile.model_copy(deep=True)
-    diff: list[TailorDiffEntry] = []
+    requirement_by_ref: dict[str, str | None] = {}
     discarded: list[DiscardedRewrite] = []
     usage = LLMUsage()
     rewrites_returned = 0
@@ -437,14 +438,8 @@ async def tailor(
                 continue
 
             _apply_bullet_rewrite(tailored, candidate, rewrite)
-            diff.append(
-                TailorDiffEntry(
-                    bullet_ref=candidate.bullet_ref,
-                    before=candidate.original,
-                    after=rewritten,
-                    requirement_targeted=rewrite.requirement_targeted
-                    or candidate.requirement_targeted,
-                )
+            requirement_by_ref[candidate.bullet_ref] = (
+                rewrite.requirement_targeted or candidate.requirement_targeted
             )
 
         missing_refs = {candidate.bullet_ref for candidate in item_candidates} - seen_refs
@@ -460,20 +455,16 @@ async def tailor(
                 )
             )
 
-    before_skills = [group.model_dump(mode="json") for group in tailored.skills]
     reordered_skills, skills_changed, skills_target = _reorder_skills(tailored, requirements)
     if skills_changed:
         tailored.skills = reordered_skills
-        diff.append(
-            TailorDiffEntry(
-                bullet_ref="/skills",
-                before=before_skills,
-                after=[group.model_dump(mode="json") for group in tailored.skills],
-                requirement_targeted=skills_target,
-            )
-        )
+        requirement_by_ref["/skills"] = skills_target
 
     tailored = StructuredResume.model_validate(tailored.model_dump(mode="json"))
+    diff = [
+        entry.model_copy(update={"requirement_targeted": requirement_by_ref.get(entry.bullet_ref)})
+        for entry in diff_structured_resumes(profile, tailored)
+    ]
     stats = TailorStats(
         bullets_scored=bullets_scored,
         rewrite_candidates=len(candidates),
@@ -521,6 +512,7 @@ async def tailor_profile_for_job(
         profile_id=profile_row.id,
         job_target_id=job_target.id,
         data=result.resume.model_dump(mode="json"),
+        score_cache=build_score_cache(job_target.id, score_after),
         diff={
             "changes": [entry.model_dump(mode="json") for entry in result.diff],
             "stats": result.stats.model_dump(mode="json"),

@@ -4,6 +4,7 @@ from typing import Any
 import pymupdf
 from docx import Document as DocxDocument
 from httpx import AsyncClient
+import pytest
 from rapidfuzz import fuzz
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +14,9 @@ from app.schemas.render import RenderRequest
 from app.schemas.resume import StructuredResume
 from app.services import render as render_service
 from app.services.extract import extract_text
+from app.services.templates import list_template_specs
+
+TEMPLATE_IDS = [spec.id for spec in list_template_specs()]
 
 
 def _resume(*, bullet_count: int = 4) -> StructuredResume:
@@ -85,17 +89,19 @@ def _bullet_match_rate(resume: StructuredResume, pdf_bytes: bytes) -> float:
     return matched / len(bullets)
 
 
-def test_classic_pdf_round_trip_recovers_bullets() -> None:
+@pytest.mark.parametrize("template_id", TEMPLATE_IDS)
+def test_pdf_round_trip_recovers_bullets_for_all_templates(template_id: str) -> None:
     resume = _resume()
 
-    pdf_bytes = render_service.render_pdf(resume)
+    pdf_bytes = render_service.render_pdf(resume, template=template_id)
 
     assert _page_count(pdf_bytes) in {1, 2}
     assert _bullet_match_rate(resume, pdf_bytes) >= 0.95
 
 
-def test_docx_opens_and_contains_section_headings() -> None:
-    docx_bytes = render_service.render_docx(_resume())
+@pytest.mark.parametrize("template_id", TEMPLATE_IDS)
+def test_docx_opens_and_contains_section_headings_for_all_templates(template_id: str) -> None:
+    docx_bytes = render_service.render_docx(_resume(), template=template_id)
     doc = DocxDocument(BytesIO(docx_bytes))
     text = "\n".join(paragraph.text for paragraph in doc.paragraphs)
 
@@ -141,7 +147,12 @@ async def test_render_endpoint_stores_document_and_returns_presigned_url(
 
     response = await client.post(
         f"/versions/{version.id}/render",
-        json=RenderRequest(format="pdf").model_dump(mode="json"),
+        json=RenderRequest(
+            format="pdf",
+            template="modern",
+            template_variables={"font_scale": 0.97},
+            accent_color="#1f766f",
+        ).model_dump(mode="json"),
     )
 
     assert response.status_code == 200, response.text
@@ -150,6 +161,9 @@ async def test_render_endpoint_stores_document_and_returns_presigned_url(
     assert stored["key"] == f"documents/{user.id}/{version.id}/resume_pdf.pdf"
     assert stored["content_type"] == "application/pdf"
     assert stored["body"].startswith(b"%PDF")
+    await session.refresh(version)
+    assert version.template_id == "modern"
+    assert version.template_variables == {"accent_color": "#1f766f", "font_scale": 0.97}
 
     rows = (
         (await session.execute(select(Document).where(Document.resume_version_id == version.id)))

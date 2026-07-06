@@ -34,6 +34,7 @@ from app.services.embeddings import embed_texts
 from app.services.errors import ConflictError, NotFoundError
 from app.services.extract import extract_text
 from app.services.render import ClassicResumeRenderer
+from app.services.score_cache import build_score_cache
 
 KEYWORD_COVERAGE_WEIGHT = 0.50
 SECTION_INTEGRITY_WEIGHT = 0.15
@@ -495,7 +496,7 @@ async def score_resume_version(
     renderer: ResumeRenderer | None = None,
 ) -> ATSScore:
     version = await session.get(ResumeVersion, version_id)
-    if version is None:
+    if version is None or version.deleted_at is not None:
         raise NotFoundError(f"resume version {version_id} not found")
 
     profile = await session.get(Profile, version.profile_id)
@@ -510,6 +511,9 @@ async def score_resume_version(
 
     resume = StructuredResume.model_validate(version.data)
     requirements = JobRequirements.model_validate(job_target.extracted_requirements)
-    return await anyio.to_thread.run_sync(
+    score = await anyio.to_thread.run_sync(
         lambda: score_resume(resume, requirements, renderer=renderer)
     )
+    version.score_cache = build_score_cache(job_target.id, score)
+    await session.commit()
+    return score

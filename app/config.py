@@ -17,6 +17,15 @@ class Settings(BaseSettings):
     max_rewrites: int = 8
     llm_input_cost_per_million: float = 0.0
     llm_output_cost_per_million: float = 0.0
+    cors_origins: list[str] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
+        # 3200: Playwright e2e dev server (3000/3001/3100 are taken by other apps).
+        "http://localhost:3200",
+        "http://127.0.0.1:3200",
+    ]
     cover_letter_banned_phrases: list[str] = [
         "I am writing to express",
         "fast-paced environment",

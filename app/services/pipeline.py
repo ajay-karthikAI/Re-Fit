@@ -29,6 +29,7 @@ from app.services.errors import ConflictError, NotFoundError
 from app.services.jd import extract_requirements
 from app.services.render import render_version_document
 from app.services.score import score_resume
+from app.services.score_cache import build_score_cache
 from app.services.tailor import tailor
 from app.services.uploads import parse_upload
 
@@ -236,6 +237,7 @@ async def run_full_pipeline_async(
                 profile_id=profile.id,
                 job_target_id=job_uuid,
                 data=tailor_result.resume.model_dump(mode="json"),
+                score_cache=build_score_cache(job_uuid, score_after),
                 diff={
                     "changes": [entry.model_dump(mode="json") for entry in tailor_result.diff],
                     "stats": tailor_result.stats.model_dump(mode="json"),

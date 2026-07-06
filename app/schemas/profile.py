@@ -34,5 +34,9 @@ class ResumeVersionRead(BaseModel):
     job_target_id: UUID | None
     data: StructuredResume
     diff: dict[str, Any] | None
+    score_cache: dict[str, Any] | None = None
     label: str | None
+    template_id: str
+    template_variables: dict[str, Any]
     created_at: datetime
+    deleted_at: datetime | None = None

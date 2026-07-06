@@ -146,6 +146,7 @@ _PROSE_SENTENCE_START_FILLERS = {
     "Your",
 }
 _COMPANY_FACT_STARTERS = {"your", "you", "the company", "this role", "the role"}
+_BRACKETED_PLACEHOLDER_RE = re.compile(r"\[[A-Z0-9 _'-]+\]")
 
 
 @dataclass(frozen=True)
@@ -525,16 +526,17 @@ def verify_prose(body: str, profile: StructuredResume, raw_jd: str) -> ProseClai
     overlap with an actual JD sentence.
     """
 
+    body_for_claims = _BRACKETED_PLACEHOLDER_RE.sub(" ", body)
     profile_text = profile.model_dump_json()
     sources = [profile_text, raw_jd]
     violations: list[str] = []
 
-    proper_nouns = sorted(_proper_noun_phrases(body))
+    proper_nouns = sorted(_proper_noun_phrases(body_for_claims))
     for term in proper_nouns:
         if not _supported_by_sources(term, sources):
             violations.append(f"unsupported proper noun: {term}")
 
-    numbers = sorted(_number_strings(body))
+    numbers = sorted(_number_strings(body_for_claims))
     source_numbers = _number_strings(profile_text) | _number_strings(raw_jd)
     for number in numbers:
         if number not in source_numbers:
@@ -547,7 +549,7 @@ def verify_prose(body: str, profile: StructuredResume, raw_jd: str) -> ProseClai
     company_names = _company_name_candidates(raw_jd, profile)
     company_fact_sentences = [
         sentence
-        for sentence in _split_sentences(body)
+        for sentence in _split_sentences(body_for_claims)
         if _is_company_fact_sentence(sentence, company_names)
     ]
     for sentence in company_fact_sentences:

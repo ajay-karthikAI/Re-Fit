@@ -31,6 +31,7 @@ from app.services.errors import ConflictError, NotFoundError, ProseVerificationE
 from app.services.jd import extract_requirements
 from app.services.llm import generate_structured
 from app.services.render import (
+    _payload_template_choice,
     render_cover_letter_docx_result,
     render_cover_letter_pdf_result,
 )
@@ -425,7 +426,7 @@ async def generate_cover_letter_for_job(
         raise NotFoundError(f"job target {job_target_id} not found")
 
     version = await session.get(ResumeVersion, payload.resume_version_id)
-    if version is None or version.job_target_id != job_target.id:
+    if version is None or version.deleted_at is not None or version.job_target_id != job_target.id:
         raise NotFoundError(
             f"resume version {payload.resume_version_id} not found for job target {job_target_id}"
         )
@@ -484,18 +485,29 @@ async def render_cover_letter_document(
         raise NotFoundError(f"cover letter {cover_letter_id} not found")
 
     version = await session.get(ResumeVersion, cover_letter.resume_version_id)
-    if version is None:
+    if version is None or version.deleted_at is not None:
         raise NotFoundError(f"resume version {cover_letter.resume_version_id} not found")
     profile_row = await session.get(Profile, version.profile_id)
     if profile_row is None:
         raise NotFoundError(f"profile {version.profile_id} not found")
 
     profile = StructuredResume.model_validate(profile_row.data)
+    template_id, template_variables, should_persist_template = _payload_template_choice(
+        version,
+        payload,
+    )
+    if should_persist_template:
+        version.template_id = template_id
+        version.template_variables = template_variables
+        await session.flush()
+
     if payload.format == "pdf":
         artifact = await anyio.to_thread.run_sync(
             lambda: render_cover_letter_pdf_result(
                 profile,
                 cover_letter.body_markdown,
+                template=template_id,
+                template_variables=template_variables,
                 font_stack=payload.font or None,
                 accent_color=payload.accent_color,
             )
@@ -508,6 +520,8 @@ async def render_cover_letter_document(
             lambda: render_cover_letter_docx_result(
                 profile,
                 cover_letter.body_markdown,
+                template=template_id,
+                template_variables=template_variables,
                 accent_color=payload.accent_color,
             )
         )

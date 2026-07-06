@@ -1,7 +1,8 @@
 import uuid
+from datetime import datetime
 from typing import Any
 
-from sqlalchemy import ForeignKey, Index, text
+from sqlalchemy import DateTime, ForeignKey, Index, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -23,7 +24,7 @@ class ResumeVersion(UUIDPrimaryKeyMixin, TimestampMixin, Base):
             "profile_id",
             "job_target_id",
             unique=True,
-            postgresql_where=text("job_target_id IS NOT NULL"),
+            postgresql_where=text("job_target_id IS NOT NULL AND deleted_at IS NULL"),
         ),
     )
 
@@ -36,4 +37,12 @@ class ResumeVersion(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     data: Mapped[dict[str, Any]] = mapped_column(JSONB)
     diff: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     """Structured diff vs the base profile, for showing the user what changed."""
+    score_cache: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     label: Mapped[str | None]
+    template_id: Mapped[str] = mapped_column(default="classic", server_default="classic")
+    template_variables: Mapped[dict[str, Any]] = mapped_column(
+        JSONB,
+        default=dict,
+        server_default=text("'{}'::jsonb"),
+    )
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)

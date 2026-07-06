@@ -8,7 +8,7 @@ from httpx import AsyncClient
 from pytest import MonkeyPatch
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import JobTarget
+from app.models import JobTarget, ResumeVersion
 from app.schemas.jd import JobRequirements, RequirementItem
 from app.schemas.llm import LLMUsage
 from app.schemas.resume import StructuredResume
@@ -263,6 +263,10 @@ async def test_tailor_api_persists_version_and_returns_verified_diff(
     assert len(result["score_after"]["keyword_coverage"]["missing_terms"]) < len(
         result["score_before"]["keyword_coverage"]["missing_terms"]
     )
+    version = await session.get(ResumeVersion, UUID(result["version_id"]))
+    assert version is not None
+    assert version.score_cache is not None
+    assert version.score_cache["headline_score"] == result["score_after"]["headline_score"]
 
     score_response = await client.get(
         f"/versions/{result['version_id']}/score",

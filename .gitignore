@@ -47,6 +47,18 @@ celerybeat-schedule*
 # uv
 # (uv.lock should be committed; .venv is ignored above)
 
+# Frontend
+web/.next/
+web/node_modules/
+web/out/
+web/tsconfig.tsbuildinfo
+web/test-results/
+web/playwright-report/
+web/e2e/artifacts/
+web/.env
+web/.env.*
+!web/.env.example
+
 # IDE / editor
 .idea/
 .vscode/

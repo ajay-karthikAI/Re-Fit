@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ resume.contact.full_name }} Cover Letter</title>
+  <style>
+    @page {
+      size: Letter;
+      margin: {{ margin_in }}in;
+      {% if show_page_numbers %}
+      @bottom-center {
+        content: "Page " counter(page) " of " counter(pages);
+        color: #666;
+        font-family: {{ font_stack | safe }};
+        font-size: 8pt;
+      }
+      {% endif %}
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      color: {{ style.body_color }};
+      font-family: {{ font_stack | safe }};
+      font-size: {{ base_font_size }}pt;
+      line-height: {{ style.letter_line_height }};
+      margin: 0;
+    }
+
+    h1,
+    p {
+      margin: 0;
+    }
+
+    .header {
+      border-bottom: {{ style.header_rule_width }}pt solid {{ accent_color }};
+      margin-bottom: {{ style.letter_header_margin_bottom }}in;
+      padding-bottom: {{ style.header_padding_bottom }}in;
+      text-align: {{ style.header_align }};
+    }
+
+    .name {
+      color: {{ style.name_color }};
+      font-family: {{ heading_font_stack | safe }};
+      font-size: {{ base_font_size + style.name_size_delta }}pt;
+      font-weight: {{ style.name_weight }};
+      letter-spacing: {{ style.name_letter_spacing }}pt;
+      line-height: 1.05;
+      text-transform: {{ style.name_transform }};
+    }
+
+    .contact {
+      color: #333;
+      font-family: {{ contact_font_stack | safe }};
+      font-size: {{ base_font_size - style.contact_size_delta }}pt;
+      margin-top: {{ style.contact_margin_top }}in;
+    }
+
+    .letter p {
+      margin-bottom: {{ style.letter_paragraph_margin_bottom }}in;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1 class="name">{{ resume.contact.full_name }}</h1>
+    <p class="contact">{{ contact_line }}</p>
+  </header>
+
+  <main class="letter">
+    {% for paragraph in paragraphs %}
+    <p>{{ paragraph }}</p>
+    {% endfor %}
+  </main>
+</body>
+</html>

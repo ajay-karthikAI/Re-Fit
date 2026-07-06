@@ -37,8 +37,14 @@ class ApplicationRead(BaseModel):
 
 
 class ApplicationListItem(ApplicationRead):
-    """An application row joined with job target and resume version context."""
+    """An application row joined with job target, resume version, and kit context."""
 
     company: str | None
     title: str | None
     resume_version_label: str | None
+    ats_score: float | None
+    """After-tailoring headline score from the resume version's score_cache."""
+    resume_pdf_ready: bool
+    has_cover_letter: bool
+    followup_count: int
+    last_activity_at: datetime

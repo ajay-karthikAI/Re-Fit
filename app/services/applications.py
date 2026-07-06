@@ -1,9 +1,18 @@
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Application, JobTarget, Profile, ResumeVersion
+from app.models import (
+    Application,
+    CoverLetter,
+    Document,
+    DocumentKind,
+    Followup,
+    JobTarget,
+    Profile,
+    ResumeVersion,
+)
 from app.schemas.application import (
     ApplicationCreate,
     ApplicationListItem,
@@ -11,6 +20,7 @@ from app.schemas.application import (
     ApplicationUpdate,
 )
 from app.services.errors import NotFoundError
+from app.services.score_cache import headline_from_cache
 from app.services.users import get_user
 
 
@@ -21,7 +31,11 @@ async def _get_owned_version(
     result = await session.execute(
         select(ResumeVersion)
         .join(Profile, ResumeVersion.profile_id == Profile.id)
-        .where(ResumeVersion.id == resume_version_id, Profile.user_id == user_id)
+        .where(
+            ResumeVersion.id == resume_version_id,
+            ResumeVersion.deleted_at.is_(None),
+            Profile.user_id == user_id,
+        )
     )
     version = result.scalar_one_or_none()
     if version is None:
@@ -68,8 +82,43 @@ async def update_application(
 
 async def list_applications(session: AsyncSession, user_id: uuid.UUID) -> list[ApplicationListItem]:
     await get_user(session, user_id)
+
+    resume_pdf_ready = (
+        select(Document.id)
+        .where(
+            Document.resume_version_id == Application.resume_version_id,
+            Document.kind == DocumentKind.resume_pdf,
+        )
+        .exists()
+    )
+    has_cover_letter = (
+        select(CoverLetter.id)
+        .where(CoverLetter.resume_version_id == Application.resume_version_id)
+        .exists()
+    )
+    followup_count = (
+        select(func.count(Followup.id))
+        .where(Followup.application_id == Application.id)
+        .scalar_subquery()
+    )
+    last_followup_at = (
+        select(func.max(Followup.created_at))
+        .where(Followup.application_id == Application.id)
+        .scalar_subquery()
+    )
+
     result = await session.execute(
-        select(Application, JobTarget.company, JobTarget.title, ResumeVersion.label)
+        select(
+            Application,
+            JobTarget.company,
+            JobTarget.title,
+            ResumeVersion.label,
+            ResumeVersion.score_cache,
+            resume_pdf_ready.label("resume_pdf_ready"),
+            has_cover_letter.label("has_cover_letter"),
+            followup_count.label("followup_count"),
+            last_followup_at.label("last_followup_at"),
+        )
         .join(JobTarget, Application.job_target_id == JobTarget.id)
         .join(ResumeVersion, Application.resume_version_id == ResumeVersion.id)
         .where(Application.user_id == user_id)
@@ -81,6 +130,25 @@ async def list_applications(session: AsyncSession, user_id: uuid.UUID) -> list[A
             company=company,
             title=title,
             resume_version_label=label,
+            ats_score=headline_from_cache(score_cache),
+            resume_pdf_ready=pdf_ready,
+            has_cover_letter=cover_ready,
+            followup_count=fu_count,
+            last_activity_at=max(
+                value
+                for value in (application.updated_at, last_fu_at)
+                if value is not None
+            ),
         )
-        for application, company, title, label in result.all()
+        for (
+            application,
+            company,
+            title,
+            label,
+            score_cache,
+            pdf_ready,
+            cover_ready,
+            fu_count,
+            last_fu_at,
+        ) in result.all()
     ]

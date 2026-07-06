@@ -1,236 +1,32 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>{{ resume.contact.full_name }}</title>
-  <style>
-    @page {
-      size: Letter;
-      margin: {{ margin_in }}in;
-      {% if show_page_numbers %}
-      @bottom-center {
-        content: "Page " counter(page) " of " counter(pages);
-        color: #666;
-        font-family: {{ font_stack | safe }};
-        font-size: 8pt;
-      }
-      {% endif %}
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      color: #202020;
-      font-family: {{ font_stack | safe }};
-      font-size: {{ base_font_size }}pt;
-      line-height: 1.32;
-      margin: 0;
-    }
-
-    h1,
-    h2,
-    h3,
-    p {
-      margin: 0;
-    }
-
-    ul {
-      margin: 0.04in 0 0 0.18in;
-      padding: 0;
-    }
-
-    li {
-      margin: 0.025in 0;
-      padding-left: 0.03in;
-    }
-
-    .header {
-      border-bottom: 1.4pt solid {{ accent_color }};
-      margin-bottom: 0.11in;
-      padding-bottom: 0.08in;
-      text-align: center;
-    }
-
-    .name {
-      color: #111;
-      font-family: {{ heading_font_stack | safe }};
-      font-size: {{ base_font_size + 8 }}pt;
-      font-weight: 700;
-      letter-spacing: 0.5pt;
-      line-height: 1.05;
-      text-transform: uppercase;
-    }
-
-    .contact {
-      color: #333;
-      font-size: {{ base_font_size - 1 }}pt;
-      margin-top: 0.04in;
-    }
-
-    .section {
-      margin-top: 0.12in;
-    }
-
-    .section-title {
-      border-bottom: 0.7pt solid #d5d5d5;
-      color: {{ accent_color }};
-      font-family: {{ heading_font_stack | safe }};
-      font-size: {{ base_font_size + 1 }}pt;
-      font-weight: 700;
-      letter-spacing: 0.8pt;
-      margin-bottom: 0.055in;
-      padding-bottom: 0.018in;
-      text-transform: uppercase;
-    }
-
-    .item {
-      break-inside: avoid;
-      margin-top: 0.075in;
-    }
-
-    .item:first-child {
-      margin-top: 0;
-    }
-
-    .item-header {
-      align-items: baseline;
-      display: flex;
-      gap: 0.12in;
-      justify-content: space-between;
-    }
-
-    .item-title {
-      font-weight: 700;
-    }
-
-    .item-meta {
-      color: #555;
-      font-size: {{ base_font_size - 1 }}pt;
-      text-align: right;
-      white-space: nowrap;
-    }
-
-    .item-subtitle {
-      color: #333;
-      font-style: italic;
-      margin-top: 0.01in;
-    }
-
-    .detail-line {
-      color: #333;
-      font-size: {{ base_font_size - 0.5 }}pt;
-      margin-top: 0.025in;
-    }
-
-    .skills-group {
-      margin-top: 0.035in;
-    }
-
-    .skills-category {
-      font-weight: 700;
-    }
-  </style>
-</head>
-<body>
-  <header class="header">
-    <h1 class="name">{{ resume.contact.full_name }}</h1>
-    <p class="contact">{{ contact_line }}</p>
-  </header>
-
-  {% if resume.summary %}
-  <section class="section">
-    <h2 class="section-title">SUMMARY</h2>
-    <p>{{ resume.summary }}</p>
-  </section>
-  {% endif %}
-
-  {% if resume.experience %}
-  <section class="section">
-    <h2 class="section-title">EXPERIENCE</h2>
-    {% for item in resume.experience %}
-    <article class="item">
-      <div class="item-header">
-        <p class="item-title">{{ item.title }} - {{ item.company }}</p>
-        <p class="item-meta">{{ format_date_range(item.start_date, item.end_date) }}</p>
-      </div>
-      {% if item.location %}
-      <p class="item-subtitle">{{ item.location }}</p>
-      {% endif %}
-      <ul>
-        {% for bullet in item.bullets %}
-        <li>{{ bullet }}</li>
-        {% endfor %}
-      </ul>
-      {% if item.technologies %}
-      <p class="detail-line"><strong>Technologies:</strong> {{ item.technologies | join(", ") }}</p>
-      {% endif %}
-    </article>
-    {% endfor %}
-  </section>
-  {% endif %}
-
-  {% if resume.education %}
-  <section class="section">
-    <h2 class="section-title">EDUCATION</h2>
-    {% for item in resume.education %}
-    <article class="item">
-      <div class="item-header">
-        <p class="item-title">{{ item.degree }}{% if item.field %}, {{ item.field }}{% endif %}</p>
-        {% if item.graduation_date %}
-        <p class="item-meta">{{ item.graduation_date }}</p>
-        {% endif %}
-      </div>
-      <p class="item-subtitle">{{ item.institution }}</p>
-      {% if item.details %}
-      <ul>
-        {% for detail in item.details %}
-        <li>{{ detail }}</li>
-        {% endfor %}
-      </ul>
-      {% endif %}
-    </article>
-    {% endfor %}
-  </section>
-  {% endif %}
-
-  {% if resume.skills %}
-  <section class="section">
-    <h2 class="section-title">SKILLS</h2>
-    {% for group in resume.skills %}
-    <p class="skills-group"><span class="skills-category">{{ group.category }}:</span> {{ group.items | join(", ") }}</p>
-    {% endfor %}
-  </section>
-  {% endif %}
-
-  {% if resume.projects %}
-  <section class="section">
-    <h2 class="section-title">PROJECTS</h2>
-    {% for project in resume.projects %}
-    <article class="item">
-      <div class="item-header">
-        <p class="item-title">{{ project.name }}</p>
-        {% if project.url %}
-        <p class="item-meta">{{ project.url }}</p>
-        {% endif %}
-      </div>
-      {% if project.description %}
-      <p class="item-subtitle">{{ project.description }}</p>
-      {% endif %}
-      {% if project.bullets %}
-      <ul>
-        {% for bullet in project.bullets %}
-        <li>{{ bullet }}</li>
-        {% endfor %}
-      </ul>
-      {% endif %}
-      {% if project.technologies %}
-      <p class="detail-line"><strong>Technologies:</strong> {{ project.technologies | join(", ") }}</p>
-      {% endif %}
-    </article>
-    {% endfor %}
-  </section>
-  {% endif %}
-</body>
-</html>
+{% set style = {
+  "body_color": "#202020",
+  "body_line_height": 1.32,
+  "ul_margin_top": 0.04,
+  "ul_margin_left": 0.18,
+  "li_margin_y": 0.025,
+  "header_rule_width": 1.4,
+  "header_margin_bottom": 0.11,
+  "header_padding_bottom": 0.08,
+  "header_align": "center",
+  "name_color": "#111",
+  "name_size_delta": 8,
+  "name_weight": 700,
+  "name_letter_spacing": 0.5,
+  "name_transform": "uppercase",
+  "contact_size_delta": 1,
+  "contact_margin_top": 0.04,
+  "section_margin_top": 0.12,
+  "section_rule_width": 0.7,
+  "section_rule_color": "#d5d5d5",
+  "section_title_color": accent_color,
+  "section_title_size_delta": 1,
+  "section_title_weight": 700,
+  "section_letter_spacing": 0.8,
+  "section_title_margin_bottom": 0.055,
+  "section_title_padding_bottom": 0.018,
+  "item_margin_top": 0.075,
+  "subtitle_margin_top": 0.01,
+  "detail_margin_top": 0.025,
+  "skills_margin_top": 0.035
+} %}
+{% include "_resume_base.html.j2" %}

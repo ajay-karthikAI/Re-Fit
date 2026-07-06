@@ -1,6 +1,9 @@
+from app.models.followup import FollowupKind
+from app.schemas.followup import FollowupOutput
 from app.schemas.jd import JobRequirements, RequirementItem
 from app.schemas.resume import StructuredResume
 from app.services.claims import verify_prose, verify_rewrite
+from app.services import followup as followup_service
 
 
 def _requirements() -> JobRequirements:
@@ -139,3 +142,20 @@ def test_prose_fabricated_company_praise_is_rejected() -> None:
 
     assert not result.passed
     assert any("Series" in violation for violation in result.violations)
+
+
+def test_post_interview_invented_specifics_are_rejected() -> None:
+    output = FollowupOutput(
+        subject="Thank you - Python API role",
+        body_markdown=(
+            "Thank you for the Python API conversation. "
+            "[PERSONAL DETAIL FROM YOUR CONVERSATION] I enjoyed hearing about your roadmap "
+            "and the next steps for the team. My Python API background remains aligned with "
+            "the role, and I appreciate the time."
+        ),
+        claims_used=[],
+    )
+
+    violations = followup_service._structural_violations(output, FollowupKind.post_interview)
+
+    assert any("possible invented interview detail" in violation for violation in violations)

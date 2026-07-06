@@ -20,12 +20,18 @@ from app.schemas.render import RenderRequest, RenderResponse
 from app.schemas.resume import StructuredResume
 from app.services import storage
 from app.services.errors import NotFoundError
+from app.services.templates import (
+    TemplateId,
+    TemplateRenderSettings,
+    normalize_template_variables,
+    render_settings,
+)
 
-TemplateName = Literal["classic"]
 RenderFormat = Literal["pdf", "docx"]
 
 DEFAULT_FONT_STACK = 'Aptos, Calibri, "Helvetica Neue", Arial, sans-serif'
 DEFAULT_HEADING_FONT_STACK = 'Aptos Display, Aptos, Calibri, "Helvetica Neue", Arial, sans-serif'
+DEFAULT_CONTACT_FONT_STACK = DEFAULT_FONT_STACK
 DEFAULT_ACCENT_COLOR = "#24526b"
 DEFAULT_MARGIN_IN = 0.7
 PDF_FONT_ATTEMPTS = (11.0, 10.5, 10.0)
@@ -38,9 +44,24 @@ class RenderedArtifact:
     content: bytes
     page_count: int | None
     warnings: list[str]
-    template: TemplateName
+    template: TemplateId
     format: RenderFormat
     font_size: float | None = None
+
+
+class TemplateResumeRenderer:
+    def __init__(
+        self,
+        template: TemplateId = "classic",
+        template_variables: dict[str, object] | None = None,
+    ) -> None:
+        self.template = template
+        self.template_variables = template_variables
+
+    def render_pdf(self, resume: StructuredResume) -> bytes:
+        return render_pdf(
+            resume, template=self.template, template_variables=self.template_variables
+        )
 
 
 class ClassicResumeRenderer:
@@ -80,11 +101,12 @@ def _markdown_paragraphs(markdown: str) -> list[str]:
 def _render_html(
     resume: StructuredResume,
     *,
-    template: TemplateName,
+    template: TemplateId,
     base_font_size: float,
     show_page_numbers: bool,
     font_stack: str,
     heading_font_stack: str,
+    contact_font_stack: str,
     accent_color: str,
     margin_in: float,
 ) -> str:
@@ -97,6 +119,7 @@ def _render_html(
         show_page_numbers=show_page_numbers,
         font_stack=font_stack,
         heading_font_stack=heading_font_stack,
+        contact_font_stack=contact_font_stack,
         accent_color=accent_color,
         margin_in=margin_in,
     )
@@ -106,11 +129,12 @@ def _render_cover_letter_html(
     resume: StructuredResume,
     body_markdown: str,
     *,
-    template: TemplateName,
+    template: TemplateId,
     base_font_size: float,
     show_page_numbers: bool,
     font_stack: str,
     heading_font_stack: str,
+    contact_font_stack: str,
     accent_color: str,
     margin_in: float,
 ) -> str:
@@ -123,6 +147,7 @@ def _render_cover_letter_html(
         show_page_numbers=show_page_numbers,
         font_stack=font_stack,
         heading_font_stack=heading_font_stack,
+        contact_font_stack=contact_font_stack,
         accent_color=accent_color,
         margin_in=margin_in,
     )
@@ -137,30 +162,76 @@ def _pdf_page_count(pdf_bytes: bytes) -> int:
         return doc.page_count
 
 
+def _template_variables(
+    template: TemplateId,
+    template_variables: dict[str, object] | None,
+    *,
+    accent_color: str | None = None,
+    font_scale: float | None = None,
+) -> dict[str, str | float]:
+    variables = dict(template_variables or {})
+    if accent_color is not None:
+        variables["accent_color"] = accent_color
+    if font_scale is not None:
+        variables["font_scale"] = font_scale
+    return normalize_template_variables(template, variables)
+
+
+def _settings(
+    template: TemplateId,
+    template_variables: dict[str, object] | None,
+    *,
+    accent_color: str | None = None,
+    font_scale: float | None = None,
+) -> TemplateRenderSettings:
+    return render_settings(
+        template,
+        _template_variables(
+            template,
+            template_variables,
+            accent_color=accent_color,
+            font_scale=font_scale,
+        ),
+    )
+
+
 def render_pdf_result(
     resume: StructuredResume,
-    template: TemplateName = "classic",
+    template: TemplateId = "classic",
     *,
-    font_stack: str = DEFAULT_FONT_STACK,
-    heading_font_stack: str = DEFAULT_HEADING_FONT_STACK,
-    accent_color: str = DEFAULT_ACCENT_COLOR,
-    margin_in: float = DEFAULT_MARGIN_IN,
+    template_variables: dict[str, object] | None = None,
+    font_stack: str | None = None,
+    heading_font_stack: str | None = None,
+    accent_color: str | None = None,
+    font_scale: float | None = None,
+    margin_in: float | None = None,
 ) -> RenderedArtifact:
+    settings = _settings(
+        template,
+        template_variables,
+        accent_color=accent_color,
+        font_scale=font_scale,
+    )
+    chosen_font = font_stack or settings.font_stack
+    chosen_heading = heading_font_stack or settings.heading_font_stack
+    chosen_contact = settings.contact_font_stack
+    chosen_margin = margin_in if margin_in is not None else settings.margin_in
     warnings: list[str] = []
     final_pdf = b""
     final_page_count = 0
-    final_font_size = PDF_FONT_ATTEMPTS[-1]
+    final_font_size = settings.pdf_font_attempts[-1]
 
-    for font_size in PDF_FONT_ATTEMPTS:
+    for font_size in settings.pdf_font_attempts:
         html = _render_html(
             resume,
             template=template,
             base_font_size=font_size,
             show_page_numbers=False,
-            font_stack=font_stack,
-            heading_font_stack=heading_font_stack,
-            accent_color=accent_color,
-            margin_in=margin_in,
+            font_stack=chosen_font,
+            heading_font_stack=chosen_heading,
+            contact_font_stack=chosen_contact,
+            accent_color=settings.accent_color,
+            margin_in=chosen_margin,
         )
         pdf = _html_to_pdf(html)
         page_count = _pdf_page_count(pdf)
@@ -171,10 +242,11 @@ def render_pdf_result(
                 template=template,
                 base_font_size=font_size,
                 show_page_numbers=True,
-                font_stack=font_stack,
-                heading_font_stack=heading_font_stack,
-                accent_color=accent_color,
-                margin_in=margin_in,
+                font_stack=chosen_font,
+                heading_font_stack=chosen_heading,
+                contact_font_stack=chosen_contact,
+                accent_color=settings.accent_color,
+                margin_in=chosen_margin,
             )
             pdf = _html_to_pdf(html)
             page_count = _pdf_page_count(pdf)
@@ -183,9 +255,9 @@ def render_pdf_result(
         final_page_count = page_count
         final_font_size = font_size
         if page_count <= 2:
-            if font_size != PDF_FONT_ATTEMPTS[0]:
+            if font_size != settings.pdf_font_attempts[0]:
                 warnings.append(
-                    f"autofit reduced base font size from {PDF_FONT_ATTEMPTS[0]:g}pt "
+                    f"autofit reduced base font size from {settings.pdf_font_attempts[0]:g}pt "
                     f"to {font_size:g}pt"
                 )
             break
@@ -205,23 +277,41 @@ def render_pdf_result(
     )
 
 
-def render_pdf(resume: StructuredResume, template: TemplateName = "classic") -> bytes:
-    return render_pdf_result(resume, template=template).content
+def render_pdf(
+    resume: StructuredResume,
+    template: TemplateId = "classic",
+    *,
+    template_variables: dict[str, object] | None = None,
+) -> bytes:
+    return render_pdf_result(
+        resume,
+        template=template,
+        template_variables=template_variables,
+    ).content
 
 
 def render_cover_letter_pdf_result(
     resume: StructuredResume,
     body_markdown: str,
-    template: TemplateName = "classic",
+    template: TemplateId = "classic",
     *,
+    template_variables: dict[str, object] | None = None,
     font_stack: str | None = None,
     heading_font_stack: str | None = None,
     accent_color: str | None = None,
-    margin_in: float = DEFAULT_MARGIN_IN,
+    font_scale: float | None = None,
+    margin_in: float | None = None,
 ) -> RenderedArtifact:
-    chosen_font = font_stack or DEFAULT_FONT_STACK
-    chosen_heading = heading_font_stack or DEFAULT_HEADING_FONT_STACK
-    chosen_accent = accent_color or DEFAULT_ACCENT_COLOR
+    settings = _settings(
+        template,
+        template_variables,
+        accent_color=accent_color,
+        font_scale=font_scale,
+    )
+    chosen_font = font_stack or settings.font_stack
+    chosen_heading = heading_font_stack or settings.heading_font_stack
+    chosen_contact = settings.contact_font_stack
+    chosen_margin = margin_in if margin_in is not None else settings.margin_in
     warnings: list[str] = []
 
     html = _render_cover_letter_html(
@@ -232,8 +322,9 @@ def render_cover_letter_pdf_result(
         show_page_numbers=False,
         font_stack=chosen_font,
         heading_font_stack=chosen_heading,
-        accent_color=chosen_accent,
-        margin_in=margin_in,
+        contact_font_stack=chosen_contact,
+        accent_color=settings.accent_color,
+        margin_in=chosen_margin,
     )
     pdf = _html_to_pdf(html)
     page_count = _pdf_page_count(pdf)
@@ -246,8 +337,9 @@ def render_cover_letter_pdf_result(
             show_page_numbers=True,
             font_stack=chosen_font,
             heading_font_stack=chosen_heading,
-            accent_color=chosen_accent,
-            margin_in=margin_in,
+            contact_font_stack=chosen_contact,
+            accent_color=settings.accent_color,
+            margin_in=chosen_margin,
         )
         pdf = _html_to_pdf(html)
         page_count = _pdf_page_count(pdf)
@@ -259,7 +351,7 @@ def render_cover_letter_pdf_result(
         warnings=warnings,
         template=template,
         format="pdf",
-        font_size=11.0,
+        font_size=settings.pdf_font_attempts[0],
     )
 
 
@@ -282,31 +374,54 @@ def _set_style_font(
         font.color.rgb = color
 
 
-def _prepare_docx_styles(doc: DocxDocument, accent_color: str) -> None:
-    accent = RGBColor.from_string(accent_color.lstrip("#").upper())
+def _prepare_docx_styles(doc: DocxDocument, settings: TemplateRenderSettings) -> None:
+    accent = RGBColor.from_string(settings.accent_color.lstrip("#").upper())
     styles = doc.styles
     if "Resume Contact" not in styles:
         styles.add_style("Resume Contact", WD_STYLE_TYPE.PARAGRAPH)
     if "Resume Metadata" not in styles:
         styles.add_style("Resume Metadata", WD_STYLE_TYPE.PARAGRAPH)
 
-    _set_style_font(doc, "Normal", font_name="Aptos", font_size_pt=10.5)
     _set_style_font(
-        doc, "Heading 1", font_name="Aptos Display", font_size_pt=12, bold=True, color=accent
+        doc, "Normal", font_name=settings.docx_body_font, font_size_pt=settings.docx_body_size
     )
-    _set_style_font(doc, "Heading 2", font_name="Aptos", font_size_pt=10.5, bold=True)
-    _set_style_font(doc, "Resume Contact", font_name="Aptos", font_size_pt=9)
-    _set_style_font(doc, "Resume Metadata", font_name="Aptos", font_size_pt=9)
+    _set_style_font(
+        doc,
+        "Heading 1",
+        font_name=settings.docx_heading_font,
+        font_size_pt=settings.docx_heading_size,
+        bold=True,
+        color=accent,
+    )
+    _set_style_font(
+        doc,
+        "Heading 2",
+        font_name=settings.docx_body_font,
+        font_size_pt=settings.docx_subheading_size,
+        bold=True,
+    )
+    _set_style_font(
+        doc,
+        "Resume Contact",
+        font_name=settings.docx_contact_font,
+        font_size_pt=settings.docx_contact_size,
+    )
+    _set_style_font(
+        doc,
+        "Resume Metadata",
+        font_name=settings.docx_body_font,
+        font_size_pt=settings.docx_contact_size,
+    )
 
     for style_name in ["Normal", "Heading 1", "Heading 2", "Resume Contact", "Resume Metadata"]:
         paragraph_format = styles[style_name].paragraph_format
         paragraph_format.space_before = Pt(0)
-        paragraph_format.space_after = Pt(4)
-        paragraph_format.line_spacing = 1.05
+        paragraph_format.space_after = Pt(settings.docx_heading_after)
+        paragraph_format.line_spacing = settings.docx_line_spacing
 
-    styles["Heading 1"].paragraph_format.space_before = Pt(8)
-    styles["Heading 1"].paragraph_format.space_after = Pt(3)
-    styles["Heading 2"].paragraph_format.space_before = Pt(4)
+    styles["Heading 1"].paragraph_format.space_before = Pt(settings.docx_section_before)
+    styles["Heading 1"].paragraph_format.space_after = Pt(settings.docx_heading_after)
+    styles["Heading 2"].paragraph_format.space_before = Pt(settings.docx_heading_after)
     styles["Heading 2"].paragraph_format.space_after = Pt(1)
 
 
@@ -318,20 +433,26 @@ def _add_bullet(doc: DocxDocument, text: str) -> None:
 
 def render_docx_result(
     resume: StructuredResume,
-    template: TemplateName = "classic",
+    template: TemplateId = "classic",
     *,
-    accent_color: str = DEFAULT_ACCENT_COLOR,
+    template_variables: dict[str, object] | None = None,
+    accent_color: str | None = None,
+    font_scale: float | None = None,
 ) -> RenderedArtifact:
-    if template != "classic":
-        raise ValueError(f"unknown resume template {template!r}")
+    settings = _settings(
+        template,
+        template_variables,
+        accent_color=accent_color,
+        font_scale=font_scale,
+    )
 
     doc = DocxDocument()
     section = doc.sections[0]
-    section.top_margin = Inches(DEFAULT_MARGIN_IN)
-    section.bottom_margin = Inches(DEFAULT_MARGIN_IN)
-    section.left_margin = Inches(DEFAULT_MARGIN_IN)
-    section.right_margin = Inches(DEFAULT_MARGIN_IN)
-    _prepare_docx_styles(doc, accent_color)
+    section.top_margin = Inches(settings.margin_in)
+    section.bottom_margin = Inches(settings.margin_in)
+    section.left_margin = Inches(settings.margin_in)
+    section.right_margin = Inches(settings.margin_in)
+    _prepare_docx_styles(doc, settings)
 
     name = doc.add_heading(resume.contact.full_name, level=1)
     name.style = doc.styles["Heading 1"]
@@ -401,27 +522,42 @@ def render_docx_result(
     )
 
 
-def render_docx(resume: StructuredResume, template: TemplateName = "classic") -> bytes:
-    return render_docx_result(resume, template=template).content
+def render_docx(
+    resume: StructuredResume,
+    template: TemplateId = "classic",
+    *,
+    template_variables: dict[str, object] | None = None,
+) -> bytes:
+    return render_docx_result(
+        resume,
+        template=template,
+        template_variables=template_variables,
+    ).content
 
 
 def render_cover_letter_docx_result(
     resume: StructuredResume,
     body_markdown: str,
-    template: TemplateName = "classic",
+    template: TemplateId = "classic",
     *,
+    template_variables: dict[str, object] | None = None,
     accent_color: str | None = None,
+    font_scale: float | None = None,
 ) -> RenderedArtifact:
-    if template != "classic":
-        raise ValueError(f"unknown resume template {template!r}")
+    settings = _settings(
+        template,
+        template_variables,
+        accent_color=accent_color,
+        font_scale=font_scale,
+    )
 
     doc = DocxDocument()
     section = doc.sections[0]
-    section.top_margin = Inches(DEFAULT_MARGIN_IN)
-    section.bottom_margin = Inches(DEFAULT_MARGIN_IN)
-    section.left_margin = Inches(DEFAULT_MARGIN_IN)
-    section.right_margin = Inches(DEFAULT_MARGIN_IN)
-    _prepare_docx_styles(doc, accent_color or DEFAULT_ACCENT_COLOR)
+    section.top_margin = Inches(settings.margin_in)
+    section.bottom_margin = Inches(settings.margin_in)
+    section.left_margin = Inches(settings.margin_in)
+    section.right_margin = Inches(settings.margin_in)
+    _prepare_docx_styles(doc, settings)
 
     name = doc.add_heading(resume.contact.full_name, level=1)
     name.style = doc.styles["Heading 1"]
@@ -445,6 +581,29 @@ def render_cover_letter_docx_result(
     )
 
 
+def _payload_template_choice(
+    version: ResumeVersion,
+    payload: RenderRequest,
+) -> tuple[TemplateId, dict[str, str | float], bool]:
+    template_id = payload.template or version.template_id or "classic"
+    variables = dict(version.template_variables or {})
+    should_persist = False
+    if payload.template is not None:
+        variables = {}
+        should_persist = True
+    if payload.template_variables is not None:
+        variables.update(payload.template_variables)
+        should_persist = True
+    if payload.accent_color is not None:
+        variables["accent_color"] = payload.accent_color
+        should_persist = True
+    if payload.font_scale is not None:
+        variables["font_scale"] = payload.font_scale
+        should_persist = True
+    normalized = normalize_template_variables(template_id, variables)
+    return template_id, normalized, should_persist
+
+
 async def render_version_document(
     session: AsyncSession,
     version_id: uuid.UUID,
@@ -453,21 +612,30 @@ async def render_version_document(
     expires_in: int = 900,
 ) -> RenderResponse:
     version = await session.get(ResumeVersion, version_id)
-    if version is None:
+    if version is None or version.deleted_at is not None:
         raise NotFoundError(f"resume version {version_id} not found")
     profile = await session.get(Profile, version.profile_id)
     if profile is None:
         raise NotFoundError(f"profile {version.profile_id} not found")
 
     resume = StructuredResume.model_validate(version.data)
+    template_id, template_variables, should_persist_template = _payload_template_choice(
+        version,
+        payload,
+    )
+    if should_persist_template:
+        version.template_id = template_id
+        version.template_variables = template_variables
+        await session.flush()
+
     if payload.format == "pdf":
         artifact = await anyio.to_thread.run_sync(
             lambda: render_pdf_result(
                 resume,
-                template=payload.template,
-                font_stack=payload.font or DEFAULT_FONT_STACK,
-                heading_font_stack=payload.font or DEFAULT_HEADING_FONT_STACK,
-                accent_color=payload.accent_color or DEFAULT_ACCENT_COLOR,
+                template=template_id,
+                template_variables=template_variables,
+                font_stack=payload.font,
+                heading_font_stack=payload.font,
             )
         )
         kind = DocumentKind.resume_pdf
@@ -477,8 +645,8 @@ async def render_version_document(
         artifact = await anyio.to_thread.run_sync(
             lambda: render_docx_result(
                 resume,
-                template=payload.template,
-                accent_color=payload.accent_color or DEFAULT_ACCENT_COLOR,
+                template=template_id,
+                template_variables=template_variables,
             )
         )
         kind = DocumentKind.resume_docx

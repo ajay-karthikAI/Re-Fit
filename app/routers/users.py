@@ -4,7 +4,7 @@ from fastapi import APIRouter, UploadFile, status
 
 from app.routers.deps import SessionDep
 from app.schemas.application import ApplicationCreate, ApplicationListItem, ApplicationRead
-from app.schemas.job_target import JobTargetCreate, JobTargetRead
+from app.schemas.job_target import JobTargetCreate, JobTargetListItem, JobTargetRead
 from app.schemas.profile import ProfileRead
 from app.schemas.resume import StructuredResume
 from app.schemas.upload import UploadResult
@@ -17,6 +17,11 @@ router = APIRouter(tags=["users"])
 @router.post("/users", status_code=status.HTTP_201_CREATED)
 async def create_user(payload: UserCreate, session: SessionDep) -> UserRead:
     return await users.create_user(session, payload.email)  # type: ignore[return-value]
+
+
+@router.get("/users")
+async def list_users(session: SessionDep) -> list[UserRead]:
+    return await users.list_users(session)  # type: ignore[return-value]
 
 
 @router.put("/users/{user_id}/profile")
@@ -36,6 +41,13 @@ async def create_job_target(
     user_id: uuid.UUID, payload: JobTargetCreate, session: SessionDep
 ) -> JobTargetRead:
     return await job_targets.create_job_target(session, user_id, payload)  # type: ignore[return-value]
+
+
+@router.get("/users/{user_id}/job-targets")
+async def list_job_targets(
+    user_id: uuid.UUID, session: SessionDep
+) -> list[JobTargetListItem]:
+    return await job_targets.list_job_targets(session, user_id)
 
 
 @router.post("/users/{user_id}/applications", status_code=status.HTTP_201_CREATED)

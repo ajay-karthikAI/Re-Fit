@@ -19,3 +19,11 @@ class FileTooLargeError(Exception):
 
 class ProseVerificationError(Exception):
     """Generated prose failed deterministic claim verification (HTTP 422)."""
+
+
+class KitMissingPiecesError(Exception):
+    """Application kit is not fully assembled yet (HTTP 404)."""
+
+    def __init__(self, missing_pieces: list[str]) -> None:
+        self.missing_pieces = missing_pieces
+        super().__init__("application kit is missing required pieces")
