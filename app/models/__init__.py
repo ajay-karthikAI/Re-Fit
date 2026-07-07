@@ -14,9 +14,12 @@ from app.models.document import Document, DocumentKind
 from app.models.followup import Followup, FollowupKind
 from app.models.job_target import JobTarget
 from app.models.pipeline_run import PipelineRun, PipelineRunStatus
+from app.models.posting import Posting
 from app.models.profile import Profile
 from app.models.resume_version import ResumeVersion
+from app.models.saved_search import Digest, PostingMatch, SavedSearch
 from app.models.short_answer import ShortAnswer, ShortAnswerKind, hash_question
+from app.models.source_board import BoardHealth, SourceBoard, SourceKind
 from app.models.upload import Upload
 from app.models.user import User
 
@@ -27,6 +30,7 @@ __all__ = [
     "BulletEmbedding",
     "CoverLetter",
     "CoverLetterTone",
+    "Digest",
     "Document",
     "DocumentKind",
     "Followup",
@@ -34,12 +38,18 @@ __all__ = [
     "JobTarget",
     "PipelineRun",
     "PipelineRunStatus",
+    "Posting",
+    "PostingMatch",
     "Profile",
+    "SavedSearch",
     "RelocationPreference",
     "ResumeVersion",
     "SalaryType",
     "ShortAnswer",
     "ShortAnswerKind",
+    "BoardHealth",
+    "SourceBoard",
+    "SourceKind",
     "Upload",
     "User",
     "WorkAuthStatus",

@@ -232,6 +232,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/postings/{posting_id}/job-target": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Job Target From Posting
+         * @description One-click bridge from a matched feed posting to a tailorable job target.
+         */
+        post: operations["create_job_target_from_posting_postings__posting_id__job_target_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/job-targets/{job_target_id}": {
         parameters: {
             query?: never;
@@ -515,6 +535,110 @@ export interface paths {
         };
         /** Get Pipeline Run */
         get: operations["get_pipeline_run_pipeline_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/source-boards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Source Boards */
+        get: operations["list_source_boards_source_boards_get"];
+        put?: never;
+        /** Create Source Board */
+        post: operations["create_source_board_source_boards_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/source-boards/{board_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Source Board */
+        delete: operations["delete_source_board_source_boards__board_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/saved-searches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Saved Searches */
+        get: operations["list_saved_searches_saved_searches_get"];
+        put?: never;
+        /** Create Saved Search */
+        post: operations["create_saved_search_saved_searches_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/saved-searches/{saved_search_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Saved Search */
+        patch: operations["update_saved_search_saved_searches__saved_search_id__patch"];
+        trace?: never;
+    };
+    "/saved-searches/{saved_search_id}/matches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Matches */
+        get: operations["get_matches_saved_searches__saved_search_id__matches_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/saved-searches/{saved_search_id}/digests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Digests */
+        get: operations["list_digests_saved_searches__saved_search_id__digests_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -828,6 +952,11 @@ export interface components {
             /** Field Key */
             field_key: string;
         };
+        /**
+         * BoardHealth
+         * @enum {string}
+         */
+        BoardHealth: "healthy" | "degraded" | "dead";
         /** Body_upload_resume_users__user_id__uploads_post */
         Body_upload_resume_users__user_id__uploads_post: {
             /** File */
@@ -929,6 +1058,31 @@ export interface components {
             skills_reordered: boolean;
             /** Requirements Targeted */
             requirements_targeted?: string[];
+        };
+        /**
+         * DigestRead
+         * @description A persisted digest row (generation only; delivery is a separate concern).
+         */
+        DigestRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Saved Search Id
+             * Format: uuid
+             */
+            saved_search_id: string;
+            /** New Match Count */
+            new_match_count: number;
+            /** Posting Ids */
+            posting_ids: string[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
         };
         /** DiscardedRewrite */
         DiscardedRewrite: {
@@ -1169,6 +1323,12 @@ export interface components {
             must_haves: string[];
             /** Nice To Haves */
             nice_to_haves: string[];
+            /**
+             * Source
+             * @default llm
+             * @enum {string}
+             */
+            source: "llm" | "heuristic";
         };
         /** JobTargetCreate */
         JobTargetCreate: {
@@ -1180,6 +1340,21 @@ export interface components {
             title?: string | null;
             /** Source Url */
             source_url?: string | null;
+        };
+        /**
+         * JobTargetFromPosting
+         * @description Turn a matched feed posting into a job target for the given user.
+         *
+         *     The posting supplies raw_description/company/title/source_url; the owning
+         *     source board supplies source_ats — so Phase 3's assisted-apply screen works
+         *     the moment the kit lands.
+         */
+        JobTargetFromPosting: {
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
         };
         /**
          * JobTargetListItem
@@ -1487,6 +1662,38 @@ export interface components {
              */
             updated_at: string;
         };
+        /**
+         * PostingMatchRead
+         * @description A scored posting for the matches view, richest fields inlined for the UI.
+         */
+        PostingMatchRead: {
+            /**
+             * Posting Id
+             * Format: uuid
+             */
+            posting_id: string;
+            /** Title */
+            title: string;
+            /** Company Name */
+            company_name: string;
+            /** Location */
+            location: string | null;
+            /** Department */
+            department: string | null;
+            /** Url */
+            url: string;
+            /** Posted At */
+            posted_at: string | null;
+            /** Score */
+            score: number;
+            /** Missing Terms */
+            missing_terms: string[];
+            /**
+             * Computed At
+             * Format: date-time
+             */
+            computed_at: string;
+        };
         /** ProfileRead */
         ProfileRead: {
             /**
@@ -1679,6 +1886,67 @@ export interface components {
          * @enum {string}
          */
         SalaryType: "annual" | "hourly";
+        /** SavedSearchCreate */
+        SavedSearchCreate: {
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** Name */
+            name: string;
+            /**
+             * Profile Id
+             * Format: uuid
+             */
+            profile_id: string;
+            /**
+             * Min Score
+             * @default 75
+             */
+            min_score: number;
+            filters?: components["schemas"]["SearchFilters"] | null;
+        };
+        /** SavedSearchRead */
+        SavedSearchRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** Name */
+            name: string;
+            /**
+             * Profile Id
+             * Format: uuid
+             */
+            profile_id: string;
+            /** Min Score */
+            min_score: number;
+            filters: components["schemas"]["SearchFilters"] | null;
+            /** Is Active */
+            is_active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * SavedSearchUpdate
+         * @description PATCH: toggle activation or move the score bar. Both optional.
+         */
+        SavedSearchUpdate: {
+            /** Is Active */
+            is_active?: boolean | null;
+            /** Min Score */
+            min_score?: number | null;
+        };
         /** ScoreComponent */
         ScoreComponent: {
             /**
@@ -1698,6 +1966,16 @@ export interface components {
             weighted_points?: number | null;
             /** Notes */
             notes?: string[];
+        };
+        /**
+         * SearchFilters
+         * @description Simple, optional post-filters over matched postings. Not a query DSL.
+         */
+        SearchFilters: {
+            /** Locations */
+            locations?: string[] | null;
+            /** Departments */
+            departments?: string[] | null;
         };
         /** SectionCheck */
         SectionCheck: {
@@ -1774,6 +2052,50 @@ export interface components {
             /** Items */
             items: string[];
         };
+        /** SourceBoardCreate */
+        SourceBoardCreate: {
+            source: components["schemas"]["SourceKind"];
+            /** Identifier */
+            identifier: string;
+            /** Company Name */
+            company_name: string;
+            /** User Id */
+            user_id?: string | null;
+        };
+        /** SourceBoardRead */
+        SourceBoardRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** User Id */
+            user_id: string | null;
+            source: components["schemas"]["SourceKind"];
+            /** Identifier */
+            identifier: string;
+            /** Company Name */
+            company_name: string;
+            health: components["schemas"]["BoardHealth"];
+            /** Consecutive Failures */
+            consecutive_failures: number;
+            /** Needs Attention */
+            needs_attention: boolean;
+            /** Last Checked At */
+            last_checked_at: string | null;
+            /** Last Success At */
+            last_success_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * SourceKind
+         * @enum {string}
+         */
+        SourceKind: "greenhouse" | "lever" | "rss";
         /**
          * StructuredResume
          * @description The complete parsed resume.
@@ -2692,6 +3014,41 @@ export interface operations {
             };
         };
     };
+    create_job_target_from_posting_postings__posting_id__job_target_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                posting_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JobTargetFromPosting"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobTargetRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_job_target_job_targets__job_target_id__get: {
         parameters: {
             query?: never;
@@ -3288,6 +3645,249 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PipelineRunRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_source_boards_source_boards_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceBoardRead"][];
+                };
+            };
+        };
+    };
+    create_source_board_source_boards_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SourceBoardCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceBoardRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_source_board_source_boards__board_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                board_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_saved_searches_saved_searches_get: {
+        parameters: {
+            query: {
+                user_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedSearchRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_saved_search_saved_searches_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavedSearchCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedSearchRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_saved_search_saved_searches__saved_search_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                saved_search_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavedSearchUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedSearchRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_matches_saved_searches__saved_search_id__matches_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                saved_search_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostingMatchRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_digests_saved_searches__saved_search_id__digests_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                saved_search_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DigestRead"][];
                 };
             };
             /** @description Validation Error */

@@ -10,7 +10,7 @@ from sqlalchemy import text
 from app.config import get_settings
 from app.db import dispose_engine, get_session_factory
 from app.routers import applications, job_targets, pipeline, profiles, templates, uploads, users
-from app.routers import versions
+from app.routers import saved_searches, source_boards, versions
 from app.services.errors import (
     ConflictError,
     FileTooLargeError,
@@ -20,6 +20,7 @@ from app.services.errors import (
     ProseVerificationError,
     UnsupportedFormatError,
 )
+from app.services.sources.base import SourceError
 
 
 @asynccontextmanager
@@ -77,6 +78,12 @@ async def _needs_answer_profile_handler(
     )
 
 
+async def _source_error_handler(request: Request, exc: SourceError) -> JSONResponse:
+    # Raised when validating a source board at creation time (the live fetch
+    # 404'd or the feed was unreachable). Reject the registration up front.
+    return JSONResponse(status_code=422, content={"detail": str(exc)})
+
+
 def create_app() -> FastAPI:
     app = FastAPI(title="refit", lifespan=lifespan)
     settings = get_settings()
@@ -95,6 +102,8 @@ def create_app() -> FastAPI:
     app.include_router(versions.router)
     app.include_router(templates.router)
     app.include_router(pipeline.router)
+    app.include_router(source_boards.router)
+    app.include_router(saved_searches.router)
     app.add_exception_handler(NotFoundError, _not_found_handler)  # type: ignore[arg-type]
     app.add_exception_handler(ConflictError, _conflict_handler)  # type: ignore[arg-type]
     app.add_exception_handler(FileTooLargeError, _too_large_handler)  # type: ignore[arg-type]
@@ -102,6 +111,7 @@ def create_app() -> FastAPI:
     app.add_exception_handler(ProseVerificationError, _prose_verification_handler)  # type: ignore[arg-type]
     app.add_exception_handler(KitMissingPiecesError, _kit_missing_handler)  # type: ignore[arg-type]
     app.add_exception_handler(NeedsAnswerProfileError, _needs_answer_profile_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(SourceError, _source_error_handler)  # type: ignore[arg-type]
 
     @app.get("/health")
     async def health(request: Request) -> dict[str, str]:

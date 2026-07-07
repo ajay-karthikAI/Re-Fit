@@ -24,20 +24,33 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_MODEL = "gpt-5.5"
 MAX_VALIDATION_RETRIES = 2
-_PLACEHOLDER_KEYS = {"", "changeme"}
 
 
 class LLMOutputInvalidError(Exception):
     """The model failed to produce schema-valid output after all retries."""
 
 
+class MissingLLMCredentialsError(Exception):
+    """No usable LLM API key is configured (empty or a placeholder like the
+    ``changeme`` shipped in .env.example). Raised instead of silently degrading
+    to an approximation — a heuristic fallback must be opted into explicitly."""
+
+
 T = TypeVar("T", bound=BaseModel)
+
+
+def is_placeholder_key(key: str | None) -> bool:
+    """True when ``key`` is unset or placeholder-shaped (empty, or starts with
+    ``change`` as in ``changeme``). The single definition of "no real key" used
+    both by the client and by any opt-in fallback gate."""
+    stripped = (key or "").strip().lower()
+    return not stripped or stripped.startswith("change")
 
 
 @lru_cache
 def _client() -> AsyncOpenAI:
     key = get_settings().openai_api_key
-    if key not in _PLACEHOLDER_KEYS:
+    if not is_placeholder_key(key):
         return AsyncOpenAI(api_key=key)
     # Fall back to the SDK's own credential resolution so a placeholder in .env
     # doesn't shadow real credentials from the process environment.

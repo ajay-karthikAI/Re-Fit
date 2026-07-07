@@ -7,6 +7,7 @@ import { UserPicker } from "@/components/shell/user-picker";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
+  { href: "/job-feed", label: "Job Feed" },
   { href: "/job-targets", label: "Job Targets" },
   { href: "/versions", label: "Versions" },
   { href: "/profile", label: "Profile" }

@@ -14,9 +14,13 @@ letters/follow-ups, and tracks application kits. The frontend is a Next.js 14
 app under `web/`.
 
 **Phase 2 is complete** (generate flow, version/profile screens, dashboard
-tracker, and the Phase 2 exit eval). It is committed locally and tagged
-`phase-2`. **Nothing has been pushed to any remote** — the commit and tag exist
-only in the local `refit` git repo. Phase 3 has not started.
+tracker, and the Phase 2 exit eval), committed locally and tagged `phase-2`.
+
+**Phase 3's assisted-apply kit is built** (AnswerProfile, ATS field taxonomies,
+short-answer generation, the composed ApplyKit endpoint, and the Apply Kit
+screen — see "What Phase 3 Added"). It lives on branch
+`phase-3-assisted-apply-kit`, pushed to `origin`, **not yet merged to `main`**
+and not tagged. Real auth (the other big Phase 3 item) is still a stub.
 
 The product invariant is non-negotiable:
 

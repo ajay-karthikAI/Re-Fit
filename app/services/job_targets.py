@@ -4,12 +4,22 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.data.ats_fields import detect_ats
-from app.models import JobTarget, ResumeVersion
+from app.models import JobTarget, Posting, ResumeVersion, SourceBoard
+from app.models.source_board import SourceKind
+from app.schemas.ats_fields import ATSName
 from app.schemas.jd import JDExtractionResult
 from app.schemas.job_target import JobTargetCreate, JobTargetListItem
 from app.services.errors import NotFoundError
 from app.services.jd import extract_requirements
 from app.services.users import get_user
+
+# The two ATS sources we ingest map straight onto the assisted-apply field
+# taxonomy. RSS boards aren't an ATS, so we fall back to sniffing the posting URL
+# (an RSS feed may still syndicate a Greenhouse/Lever apply link).
+_SOURCE_TO_ATS: dict[SourceKind, ATSName] = {
+    SourceKind.greenhouse: "greenhouse",
+    SourceKind.lever: "lever",
+}
 
 
 async def create_job_target(
@@ -20,6 +30,58 @@ async def create_job_target(
         user_id=user_id,
         source_ats=detect_ats(payload.source_url),
         **payload.model_dump(),
+    )
+    session.add(job_target)
+    await session.commit()
+    await session.refresh(job_target)
+    return job_target
+
+
+async def create_job_target_from_posting(
+    session: AsyncSession, posting_id: uuid.UUID, user_id: uuid.UUID
+) -> JobTarget:
+    """Materialise a matched feed posting into a job target for ``user_id``.
+
+    This is the seam behind the Job Feed's one-click "Generate kit": the posting
+    supplies the description/company/title/url, and the posting's source board
+    supplies ``source_ats`` so the assisted-apply field plan is correct on
+    arrival (Greenhouse/Lever directly; RSS falls back to URL sniffing).
+
+    Idempotent per (user, source_url): re-clicking Generate kit on the same
+    posting returns the existing job target instead of spawning a duplicate — so
+    the second click lands straight on the already-generated kit rather than
+    re-running the pipeline.
+    """
+    await get_user(session, user_id)
+    posting = await session.get(Posting, posting_id)
+    if posting is None:
+        raise NotFoundError(f"posting {posting_id} not found")
+    board = await session.get(SourceBoard, posting.source_board_id)
+    if board is None:
+        raise NotFoundError(f"source board {posting.source_board_id} not found")
+
+    existing = (
+        (
+            await session.execute(
+                select(JobTarget)
+                .where(JobTarget.user_id == user_id, JobTarget.source_url == posting.url)
+                .order_by(JobTarget.created_at.desc())
+            )
+        )
+        .scalars()
+        .first()
+    )
+    if existing is not None:
+        return existing
+
+    source_ats = _SOURCE_TO_ATS.get(board.source) or detect_ats(posting.url)
+    job_target = JobTarget(
+        user_id=user_id,
+        company=board.company_name,
+        title=posting.title,
+        source_url=posting.url,
+        source_ats=source_ats,
+        raw_description=posting.description_text,
     )
     session.add(job_target)
     await session.commit()

@@ -1,4 +1,4 @@
-.PHONY: up down dev dev-web worker test lint eval eval-phase2 api-types
+.PHONY: up down dev dev-web worker test lint eval eval-phase2 eval-phase3 api-types
 
 up:
 	docker compose up -d --wait
@@ -30,6 +30,11 @@ eval:
 # to bound cost while smoke-testing (e.g. make eval-phase2 LIMIT=2).
 eval-phase2:
 	uv run python -m scripts.eval_phase1 --phase2 $(if $(LIMIT),--limit $(LIMIT),)
+
+# Phase 3 assisted-apply check: assembles Apply Kits through the FastAPI route
+# and writes one manual-review markdown report per corpus job target.
+eval-phase3:
+	uv run python -m scripts.eval_phase3 $(if $(LIMIT),--limit $(LIMIT),)
 
 api-types:
 	cd web && corepack pnpm exec openapi-typescript http://localhost:8100/openapi.json -o src/lib/api-types.ts

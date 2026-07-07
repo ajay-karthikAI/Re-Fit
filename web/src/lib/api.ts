@@ -196,6 +196,18 @@ export async function generateKit(jobTargetId: string, body: KitRequest): Promis
   );
 }
 
+/** The already-generated kit for a job target, or null when none exists yet
+ * (404 / missing pieces) — so a page can land on the ready kit if there is one. */
+export async function getExistingKit(jobTargetId: string): Promise<KitResult | null> {
+  const response = await api.GET("/job-targets/{job_target_id}/kit", {
+    params: { path: { job_target_id: jobTargetId } }
+  });
+  if (response.error) {
+    return null;
+  }
+  return response.data ?? null;
+}
+
 // --- Apply kit -------------------------------------------------------------
 
 export type ApplyKit =
@@ -405,4 +417,109 @@ export async function parseUpload(uploadId: string) {
       params: { path: { upload_id: uploadId } }
     })
   );
+}
+
+// --- Job feed: saved searches ----------------------------------------------
+
+export type SavedSearch =
+  paths["/saved-searches"]["get"]["responses"][200]["content"]["application/json"][number];
+
+export type SavedSearchCreate = NonNullable<
+  paths["/saved-searches"]["post"]["requestBody"]
+>["content"]["application/json"];
+
+export type SavedSearchUpdate = NonNullable<
+  paths["/saved-searches/{saved_search_id}"]["patch"]["requestBody"]
+>["content"]["application/json"];
+
+export type PostingMatch =
+  paths["/saved-searches/{saved_search_id}/matches"]["get"]["responses"][200]["content"]["application/json"][number];
+
+export type Digest =
+  paths["/saved-searches/{saved_search_id}/digests"]["get"]["responses"][200]["content"]["application/json"][number];
+
+export async function listSavedSearches(userId: string): Promise<SavedSearch[]> {
+  return unwrap(
+    await api.GET("/saved-searches", { params: { query: { user_id: userId } } })
+  );
+}
+
+export async function createSavedSearch(body: SavedSearchCreate): Promise<SavedSearch> {
+  return unwrap(await api.POST("/saved-searches", { body })) as Promise<SavedSearch>;
+}
+
+export async function updateSavedSearch(
+  savedSearchId: string,
+  body: SavedSearchUpdate
+): Promise<SavedSearch> {
+  return unwrap(
+    await api.PATCH("/saved-searches/{saved_search_id}", {
+      params: { path: { saved_search_id: savedSearchId } },
+      body
+    })
+  );
+}
+
+export async function listMatches(savedSearchId: string): Promise<PostingMatch[]> {
+  return unwrap(
+    await api.GET("/saved-searches/{saved_search_id}/matches", {
+      params: { path: { saved_search_id: savedSearchId } }
+    })
+  );
+}
+
+export async function listDigests(savedSearchId: string): Promise<Digest[]> {
+  return unwrap(
+    await api.GET("/saved-searches/{saved_search_id}/digests", {
+      params: { path: { saved_search_id: savedSearchId } }
+    })
+  );
+}
+
+// --- Job feed: source boards -----------------------------------------------
+
+export type SourceBoard =
+  paths["/source-boards"]["get"]["responses"][200]["content"]["application/json"][number];
+
+export type SourceBoardCreate = NonNullable<
+  paths["/source-boards"]["post"]["requestBody"]
+>["content"]["application/json"];
+
+export type BoardHealth = SourceBoard["health"];
+export type SourceKind = SourceBoard["source"];
+
+export async function listSourceBoards(): Promise<SourceBoard[]> {
+  return unwrap(await api.GET("/source-boards"));
+}
+
+export async function createSourceBoard(body: SourceBoardCreate): Promise<SourceBoard> {
+  return unwrap(await api.POST("/source-boards", { body })) as Promise<SourceBoard>;
+}
+
+export async function deleteSourceBoard(boardId: string): Promise<void> {
+  const response = await api.DELETE("/source-boards/{board_id}", {
+    params: { path: { board_id: boardId } }
+  });
+  if (response.error) {
+    throw new ApiError("Failed to delete source board", response.response.status);
+  }
+}
+
+// --- Job feed: one-click posting → job target ------------------------------
+
+/**
+ * The one-click bridge: materialise a matched posting into a job target for the
+ * user (source_ats comes from the posting's board), so the existing kit endpoint
+ * can tailor against it. Idempotent per (user, posting url) on the backend.
+ */
+export async function createJobTargetFromPosting(
+  postingId: string,
+  userId: string
+): Promise<JobTargetRead> {
+  return unwrap(
+    await api.POST("/postings/{posting_id}/job-target", {
+      params: { path: { posting_id: postingId } },
+      body: { user_id: userId }
+    })
+  ) as Promise<JobTargetRead>;
 }

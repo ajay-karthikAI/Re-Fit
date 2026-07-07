@@ -1,19 +1,29 @@
 import uuid
 
-from fastapi import APIRouter
+from fastapi import APIRouter, status
 
 from app.routers.deps import SessionDep
 from app.schemas.application import ApplicationRead
 from app.schemas.apply_kit import ApplyKit, ApplyKitRegenerateRequest, TrackRequest
 from app.schemas.cover_letter import CoverLetterRequest, CoverLetterResult
 from app.schemas.jd import JDExtractionResult
-from app.schemas.job_target import JobTargetRead
+from app.schemas.job_target import JobTargetFromPosting, JobTargetRead
 from app.schemas.kit import KitRequest, KitResult
 from app.schemas.render import RenderRequest, RenderResponse
 from app.schemas.short_answer import ShortAnswerRead, ShortAnswerRequest, ShortAnswerResult
 from app.services import apply_kit, applications, cover_letter, job_targets, kit, short_answers
 
 router = APIRouter(tags=["job-targets"])
+
+
+@router.post("/postings/{posting_id}/job-target", status_code=status.HTTP_201_CREATED)
+async def create_job_target_from_posting(
+    posting_id: uuid.UUID, payload: JobTargetFromPosting, session: SessionDep
+) -> JobTargetRead:
+    """One-click bridge from a matched feed posting to a tailorable job target."""
+    return await job_targets.create_job_target_from_posting(  # type: ignore[return-value]
+        session, posting_id, payload.user_id
+    )
 
 
 @router.get("/job-targets/{job_target_id}")

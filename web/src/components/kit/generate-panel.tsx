@@ -1,10 +1,11 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
-import { type KitResult, type TemplateId, type Tone, generateKit } from "@/lib/api";
+import { type KitResult, type TemplateId, type Tone, generateKit, getExistingKit } from "@/lib/api";
 import { KitResultView } from "@/components/kit/kit-result-view";
+import { ProgressStepper, STAGES, STAGE_INTERVAL_MS } from "@/components/kit/kit-progress";
 import { useToast } from "@/components/ui/toast";
 
 const TONES: { id: Tone; label: string }[] = [
@@ -20,48 +21,6 @@ const TEMPLATES: { id: TemplateId; label: string }[] = [
   { id: "mono", label: "Mono" }
 ];
 
-// The kit POST is synchronous (tailor + score + letter + render in one request),
-// so we advance a staged indicator on a timer while it is in flight and snap to
-// done when the real result lands.
-const STAGES = [
-  "Tailoring resume to the job",
-  "Scoring against requirements",
-  "Writing the cover letter",
-  "Rendering documents"
-];
-const STAGE_INTERVAL_MS = 1800;
-
-function ProgressStepper({ activeStage }: { activeStage: number }) {
-  return (
-    <ol className="space-y-2" data-testid="generate-progress">
-      {STAGES.map((stage, index) => {
-        const done = index < activeStage;
-        const active = index === activeStage;
-        return (
-          <li key={stage} className="flex items-center gap-3 text-sm">
-            <span
-              className={[
-                "flex h-6 w-6 items-center justify-center rounded-full border font-mono text-xs",
-                done
-                  ? "border-accent bg-accent/15 text-accent"
-                  : active
-                    ? "border-accent text-accent"
-                    : "border-border text-subdued"
-              ].join(" ")}
-            >
-              {done ? "✓" : index + 1}
-            </span>
-            <span className={active || done ? "text-text" : "text-subdued"}>
-              {stage}
-              {active ? <span className="ml-1 animate-pulse text-accent">…</span> : null}
-            </span>
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
-
 export function GeneratePanel({
   jobTargetId,
   hasRequirements
@@ -75,6 +34,14 @@ export function GeneratePanel({
   const [template, setTemplate] = useState<TemplateId>("classic");
   const [activeStage, setActiveStage] = useState(0);
   const [result, setResult] = useState<KitResult | null>(null);
+
+  // If a kit was already generated for this job target (e.g. the feed's
+  // one-click Generate-kit just landed here), show it straight away rather than
+  // the generate form — this is the kit view the whole flow aims at.
+  const existingKit = useQuery({
+    queryKey: ["existing-kit", jobTargetId],
+    queryFn: () => getExistingKit(jobTargetId)
+  });
 
   const mutation = useMutation({
     mutationFn: () => generateKit(jobTargetId, { tone, template, force: false }),
@@ -99,8 +66,18 @@ export function GeneratePanel({
     return () => clearInterval(timer);
   }, [mutation.isPending]);
 
-  if (result) {
-    return <KitResultView kit={result} jobTargetId={jobTargetId} />;
+  const shownKit = result ?? existingKit.data ?? null;
+  if (shownKit) {
+    return <KitResultView kit={shownKit} jobTargetId={jobTargetId} />;
+  }
+
+  // Avoid flashing the generate form before we know whether a kit already exists.
+  if (existingKit.isLoading && !mutation.isPending) {
+    return (
+      <div className="rounded-xl border border-border bg-muted p-6">
+        <p className="text-sm text-subdued">Loading kit…</p>
+      </div>
+    );
   }
 
   if (mutation.isPending) {

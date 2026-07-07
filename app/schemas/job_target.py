@@ -14,6 +14,19 @@ class JobTargetCreate(BaseModel):
     source_url: str | None = None
 
 
+class JobTargetFromPosting(BaseModel):
+    """Turn a matched feed posting into a job target for the given user.
+
+    The posting supplies raw_description/company/title/source_url; the owning
+    source board supplies source_ats — so Phase 3's assisted-apply screen works
+    the moment the kit lands.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    user_id: UUID
+
+
 class JobTargetRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

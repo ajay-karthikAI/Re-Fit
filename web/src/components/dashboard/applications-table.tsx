@@ -10,24 +10,12 @@ import {
   listApplications,
   updateApplication
 } from "@/lib/api";
-import { STATUS_LABELS, STATUS_ORDER, formatDate, formatScore } from "@/lib/applications";
+import { STATUS_LABELS, STATUS_ORDER, formatDate } from "@/lib/applications";
 import { useDevUser } from "@/components/providers/dev-user-provider";
 import { StatusControl } from "@/components/dashboard/status-control";
 import { KitPanel } from "@/components/dashboard/kit-panel";
+import { ScoreBadge } from "@/components/ui/score-badge";
 import { useToast } from "@/components/ui/toast";
-
-function ScoreBadge({ score }: { score: number | null | undefined }) {
-  if (score === null || score === undefined) {
-    return <span className="font-mono text-xs text-subdued">—</span>;
-  }
-  const tone =
-    score >= 75 ? "text-accent border-accent/40" : score >= 50 ? "text-yellow-300 border-yellow-500/40" : "text-red-300 border-red-500/40";
-  return (
-    <span className={`rounded border px-1.5 py-0.5 font-mono text-xs ${tone}`}>
-      {formatScore(score)}
-    </span>
-  );
-}
 
 function KitDot({ ready, label }: { ready: boolean; label: string }) {
   return (

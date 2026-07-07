@@ -177,6 +177,7 @@ async def run_full_pipeline_async(
             or run.job_target_id != job_uuid
         ):
             raise NotFoundError("pipeline run does not match supplied user/upload/job target")
+        run_id_for_failure = run.id
 
         timings = dict(run.timings or {})
         total_usage = LLMUsage()
@@ -303,7 +304,7 @@ async def run_full_pipeline_async(
             return results
         except Exception as exc:
             await session.rollback()
-            failed_run = await get_pipeline_run(session, run.id)
+            failed_run = await get_pipeline_run(session, run_id_for_failure)
             await _commit_run(
                 session,
                 failed_run,

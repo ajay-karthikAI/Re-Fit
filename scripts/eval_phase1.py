@@ -30,6 +30,7 @@ from app.services.extract import extract_text
 from app.services.pipeline import run_full_pipeline_async
 from app.services.render import render_docx_result, render_pdf_result
 from app.services.templates import TemplateId
+from scripts._llm_guard import HEURISTIC_REPORT_HEADER, guard_llm_or_exit
 
 CORPUS_DIR = Path("tests/corpus")
 PAIRS_PATH = CORPUS_DIR / "pairs.yaml"
@@ -238,9 +239,7 @@ async def _run_pair_phase2(pair: dict[str, str]) -> dict[str, Any]:
 
     try:
         job_target_id = uuid.UUID(base["_job_target_id"])
-        profile, tailored, requirements, raw_jd = await _kit_context(
-            base["results"], job_target_id
-        )
+        profile, tailored, requirements, raw_jd = await _kit_context(base["results"], job_target_id)
         letter = await generate_cover_letter(profile, requirements, raw_jd, tailored)
         letter_violations = list(letter.claim_report.violations)
         if not letter.claim_report.passed and not letter_violations:
@@ -298,7 +297,9 @@ def _report_pair_phase2(row: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _write_report_phase2(note: str, rows: list[dict[str, Any]]) -> Path:
+def _write_report_phase2(
+    note: str, rows: list[dict[str, Any]], *, heuristic_mode: bool = False
+) -> Path:
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     path = REPORT_DIR / f"phase2_{timestamp}.md"
@@ -309,6 +310,7 @@ def _write_report_phase2(note: str, rows: list[dict[str, Any]]) -> Path:
     body = [
         "# Phase 2 Eval Report",
         "",
+        *([HEURISTIC_REPORT_HEADER, ""] if heuristic_mode else []),
         f"Generated: {datetime.now(UTC).isoformat()}",
         "",
         "Full-kit exit check: tailor + cover letter + all-format renders per pair.",
@@ -403,7 +405,7 @@ def _report_pair(row: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _write_report(note: str, rows: list[dict[str, Any]]) -> Path:
+def _write_report(note: str, rows: list[dict[str, Any]], *, heuristic_mode: bool = False) -> Path:
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     path = REPORT_DIR / f"{timestamp}.md"
@@ -414,6 +416,7 @@ def _write_report(note: str, rows: list[dict[str, Any]]) -> Path:
     body = [
         "# Phase 1 Eval Report",
         "",
+        *([HEURISTIC_REPORT_HEADER, ""] if heuristic_mode else []),
         f"Generated: {datetime.now(UTC).isoformat()}",
         "",
         "## Corpus Note",
@@ -447,7 +450,14 @@ async def _main() -> int:
         default=None,
         help="Run only the first N pairs (for a bounded smoke of the report).",
     )
+    parser.add_argument(
+        "--allow-heuristic",
+        action="store_true",
+        help="Permit running with NO real LLM key, using the heuristic approximation.",
+    )
     args = parser.parse_args()
+
+    heuristic_mode = guard_llm_or_exit(args.allow_heuristic, "eval_phase1")
 
     note, pairs = _load_pairs(args.pairs)
     if args.limit is not None:
@@ -459,9 +469,9 @@ async def _main() -> int:
         rows.append(await (_run_pair_phase2(pair) if args.phase2 else _run_pair(pair)))
 
     if args.phase2:
-        report_path = _write_report_phase2(note, rows)
+        report_path = _write_report_phase2(note, rows, heuristic_mode=heuristic_mode)
     else:
-        report_path = _write_report(note, rows)
+        report_path = _write_report(note, rows, heuristic_mode=heuristic_mode)
     print(f"wrote {report_path}")
 
     failed = [row for row in rows if row["status"] != "succeeded"]
@@ -477,8 +487,7 @@ async def _main() -> int:
         letter_failures = [row for row in rows if row.get("letter_claim_violations")]
         template_failures = [row for row in rows if row.get("template_failures")]
         problems += (
-            f" letter_violations={len(letter_failures)} "
-            f"template_failures={len(template_failures)}"
+            f" letter_violations={len(letter_failures)} template_failures={len(template_failures)}"
         )
         exit_bad = exit_bad or bool(letter_failures or template_failures)
 
