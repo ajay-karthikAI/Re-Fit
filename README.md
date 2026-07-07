@@ -56,30 +56,6 @@ uv run alembic upgrade head
 make dev
 ```
 
-The API runs at:
-
-```text
-http://localhost:8100
-```
-
-Open the interactive docs at:
-
-```text
-http://localhost:8100/docs
-```
-
-Health check:
-
-```bash
-curl -sS http://localhost:8100/health
-```
-
-Run the worker in a second terminal when using `/pipeline/runs`:
-
-```bash
-make worker
-```
-
 ## Frontend Dev
 
 The frontend lives in `web/` and talks only to FastAPI.
