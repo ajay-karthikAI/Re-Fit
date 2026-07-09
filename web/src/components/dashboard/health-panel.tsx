@@ -38,7 +38,7 @@ export function HealthPanel() {
       </div>
 
       {healthQuery.error ? (
-        <div className="mt-4 rounded-md border border-red-500/40 bg-red-950/20 p-4 text-sm text-red-200">
+        <div className="mt-4 rounded-md border border-danger/40 bg-danger/10 p-4 text-sm text-danger">
           Could not reach FastAPI at the configured base URL.
         </div>
       ) : (

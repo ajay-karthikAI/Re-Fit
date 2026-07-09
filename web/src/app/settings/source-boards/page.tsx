@@ -24,8 +24,8 @@ const SOURCES: { id: SourceKind; label: string; hint: string }[] = [
 
 const HEALTH_STYLES: Record<BoardHealth, string> = {
   healthy: "border-accent/40 text-accent",
-  degraded: "border-yellow-500/40 text-yellow-300",
-  dead: "border-red-500/40 text-red-300"
+  degraded: "border-accent/40 text-accent",
+  dead: "border-danger/40 text-danger"
 };
 
 function HealthBadge({ health }: { health: BoardHealth }) {
@@ -124,7 +124,7 @@ function NewBoardForm({ userId }: { userId: string | null }) {
         type="submit"
         data-testid="create-source-board"
         disabled={!canSubmit}
-        className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-background transition hover:bg-accent/90 disabled:opacity-50"
+        className="rounded-[10px] bg-gold-gradient px-4 py-2 text-sm font-bold text-background transition enabled:hover:-translate-y-0.5 enabled:hover:shadow-gold disabled:opacity-50"
       >
         Add
       </button>
@@ -170,7 +170,7 @@ function BoardRow({ board }: { board: SourceBoard }) {
         data-testid={`delete-board-${board.id}`}
         onClick={() => mutation.mutate()}
         disabled={mutation.isPending}
-        className="shrink-0 rounded-md border border-border px-3 py-1.5 text-xs text-subdued transition hover:border-red-500/50 hover:text-red-300 disabled:opacity-50"
+        className="shrink-0 rounded-md border border-border px-3 py-1.5 text-xs text-subdued transition hover:border-danger/50 hover:text-danger disabled:opacity-50"
       >
         Remove
       </button>
@@ -193,8 +193,8 @@ export default function SourceBoardsPage() {
         <h1 className="mt-3 text-3xl font-semibold text-text">Source boards</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-subdued">
           The company boards and feeds we watch for postings. A board that repeatedly fails degrades
-          to <span className="text-yellow-300">degraded</span> and then{" "}
-          <span className="text-red-300">dead</span> so we stop hammering it — re-verify or remove
+          to <span className="text-accent">degraded</span> and then{" "}
+          <span className="text-danger">dead</span> so we stop hammering it — re-verify or remove
           those.
         </p>
       </div>

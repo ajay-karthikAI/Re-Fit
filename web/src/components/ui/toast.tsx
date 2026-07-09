@@ -49,7 +49,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             className={[
               "pointer-events-auto rounded-md border px-4 py-3 text-sm shadow-panel",
               item.variant === "error"
-                ? "border-red-500/40 bg-red-950/80 text-red-100"
+                ? "border-danger/40 bg-danger/20 text-danger"
                 : "border-accent/40 bg-surface text-text"
             ].join(" ")}
           >

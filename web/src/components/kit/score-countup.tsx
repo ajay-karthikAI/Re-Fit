@@ -69,7 +69,7 @@ export function ScoreCountUp({
           <span
             className={[
               "mb-2 rounded px-2 py-0.5 font-mono text-sm",
-              delta > 0 ? "bg-accent/15 text-accent" : "bg-red-950/60 text-red-300"
+              delta > 0 ? "bg-accent/15 text-accent" : "bg-danger/15 text-danger"
             ].join(" ")}
           >
             {delta > 0 ? "+" : ""}

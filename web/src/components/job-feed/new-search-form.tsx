@@ -154,7 +154,7 @@ export function NewSearchForm({
         type="submit"
         data-testid="create-saved-search"
         disabled={!canSubmit}
-        className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-background transition hover:bg-accent/90 disabled:opacity-50"
+        className="rounded-[10px] bg-gold-gradient px-4 py-2 text-sm font-bold text-background transition enabled:hover:-translate-y-0.5 enabled:hover:shadow-gold disabled:opacity-50"
       >
         {mutation.isPending ? "Creating…" : "Create saved search"}
       </button>

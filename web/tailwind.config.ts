@@ -16,14 +16,26 @@ const config: Config = {
         border: "rgb(var(--color-border) / <alpha-value>)",
         text: "rgb(var(--color-text) / <alpha-value>)",
         subdued: "rgb(var(--color-subdued) / <alpha-value>)",
-        accent: "rgb(var(--color-accent) / <alpha-value>)"
+        faint: "rgb(var(--color-faint) / <alpha-value>)",
+        silver: "rgb(var(--color-silver) / <alpha-value>)",
+        accent: "rgb(var(--color-accent) / <alpha-value>)",
+        success: "rgb(var(--color-success) / <alpha-value>)",
+        danger: "rgb(var(--color-danger) / <alpha-value>)"
       },
       fontFamily: {
-        sans: ["var(--font-ui)", "Inter", "Geist", "system-ui", "sans-serif"],
-        mono: ["var(--font-mono)", "SFMono-Regular", "Consolas", "monospace"]
+        sans: ["var(--font-ui)", "Space Grotesk", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "IBM Plex Mono", "ui-monospace", "monospace"]
+      },
+      backgroundImage: {
+        "gold-gradient": "linear-gradient(135deg, #E8C46B, #C9A24B)",
+        "gold-mark": "linear-gradient(135deg, #E8C46B, #9A7B2F)",
+        "gold-bar": "linear-gradient(90deg, #9A7B2F, #E8C46B)",
+        "silver-bar": "linear-gradient(90deg, #7C8087, #C9CDD3)",
+        "silver-mark": "linear-gradient(135deg, #C9CDD3, #7C8087)"
       },
       boxShadow: {
-        panel: "0 12px 32px rgb(0 0 0 / 0.22)"
+        panel: "0 12px 32px rgb(0 0 0 / 0.22)",
+        gold: "0 8px 24px rgb(232 196 107 / 0.30)"
       }
     }
   },
