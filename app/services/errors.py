@@ -9,6 +9,10 @@ class ConflictError(Exception):
     pass
 
 
+class AuthenticationError(Exception):
+    """Bad credentials or a dead session token (HTTP 401)."""
+
+
 class UnsupportedFormatError(Exception):
     """Uploaded file is not a format we can extract text from (HTTP 415)."""
 

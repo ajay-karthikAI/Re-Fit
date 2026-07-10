@@ -10,8 +10,9 @@ from sqlalchemy import text
 from app.config import get_settings
 from app.db import dispose_engine, get_session_factory
 from app.routers import applications, job_targets, pipeline, profiles, templates, uploads, users
-from app.routers import saved_searches, source_boards, versions
+from app.routers import auth, saved_searches, source_boards, versions
 from app.services.errors import (
+    AuthenticationError,
     ConflictError,
     FileTooLargeError,
     KitMissingPiecesError,
@@ -37,6 +38,14 @@ async def _not_found_handler(request: Request, exc: NotFoundError) -> JSONRespon
 
 async def _conflict_handler(request: Request, exc: ConflictError) -> JSONResponse:
     return JSONResponse(status_code=409, content={"detail": str(exc)})
+
+
+async def _authentication_handler(request: Request, exc: AuthenticationError) -> JSONResponse:
+    return JSONResponse(
+        status_code=401,
+        content={"detail": str(exc)},
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 async def _too_large_handler(request: Request, exc: FileTooLargeError) -> JSONResponse:
@@ -94,6 +103,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.include_router(auth.router)
     app.include_router(users.router)
     app.include_router(profiles.router)
     app.include_router(applications.router)
@@ -106,6 +116,7 @@ def create_app() -> FastAPI:
     app.include_router(saved_searches.router)
     app.add_exception_handler(NotFoundError, _not_found_handler)  # type: ignore[arg-type]
     app.add_exception_handler(ConflictError, _conflict_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(AuthenticationError, _authentication_handler)  # type: ignore[arg-type]
     app.add_exception_handler(FileTooLargeError, _too_large_handler)  # type: ignore[arg-type]
     app.add_exception_handler(UnsupportedFormatError, _unsupported_format_handler)  # type: ignore[arg-type]
     app.add_exception_handler(ProseVerificationError, _prose_verification_handler)  # type: ignore[arg-type]

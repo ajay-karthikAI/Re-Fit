@@ -3,20 +3,20 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { createUser } from "@/lib/api";
+import { login, register } from "@/lib/api";
 import { useDevUser } from "@/components/providers/dev-user-provider";
 
 type Mode = "login" | "new";
 
 /**
- * Sign-in gate between the landing hero and the workspace. Resolves the email
- * against the workspace's user accounts (DEV AUTH: the password field is the
- * Phase 3 auth surface — it is required by the form but not yet verified by
- * the backend, which has no credential store).
+ * Sign-in gate between the landing hero and the workspace. Login verifies the
+ * password against /auth/login (bcrypt-backed) and stores the issued bearer
+ * session; New registers via /auth/register. A pre-auth account (dev picker /
+ * seed scripts) has no password yet — registering with its email claims it.
  */
 export default function LoginPage() {
   const router = useRouter();
-  const { users, setSelectedUserId } = useDevUser();
+  const { setSelectedUserId } = useDevUser();
 
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
@@ -32,29 +32,23 @@ export default function LoginPage() {
       setError("Enter your email.");
       return;
     }
-    if (password.length < 8) {
+    if (mode === "new" && password.length < 8) {
       setError("Password must be at least 8 characters.");
       return;
     }
-
-    if (mode === "login") {
-      const user = users.find((u) => u.email.toLowerCase() === address);
-      if (!user) {
-        setError("No workspace found for that email. Switch to New to create one.");
-        return;
-      }
-      setSelectedUserId(user.id);
-      router.push("/dashboard");
+    if (!password) {
+      setError("Enter your password.");
       return;
     }
 
     setPending(true);
     try {
-      const user = await createUser(address);
-      setSelectedUserId(user.id);
+      const authSession =
+        mode === "login" ? await login(address, password) : await register(address, password);
+      setSelectedUserId(authSession.user.id);
       router.push("/dashboard");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not create the account.");
+      setError(e instanceof Error ? e.message : "Sign-in failed.");
       setPending(false);
     }
   };
@@ -204,7 +198,11 @@ export default function LoginPage() {
             disabled={pending}
             className="mt-6 w-full rounded-[10px] bg-gold-gradient px-4 py-3 text-[15px] font-bold text-background transition enabled:hover:-translate-y-0.5 enabled:hover:shadow-gold disabled:opacity-60"
           >
-            {pending ? "Creating workspace…" : "Open My Dashboard"}
+            {pending
+              ? mode === "login"
+                ? "Signing in…"
+                : "Creating workspace…"
+              : "Open My Dashboard"}
           </button>
         </form>
       </div>
