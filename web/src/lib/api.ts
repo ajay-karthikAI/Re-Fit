@@ -11,6 +11,40 @@ export const api = createClient<paths>({
   fetch: (...args) => globalThis.fetch(...args)
 });
 
+/* ── bearer sessions (Phase 3 auth) ── */
+
+const SESSION_TOKEN_KEY = "refit.sessionToken";
+
+export function getSessionToken(): string | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  return window.localStorage.getItem(SESSION_TOKEN_KEY);
+}
+
+function storeSessionToken(token: string | null): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  if (token === null) {
+    window.localStorage.removeItem(SESSION_TOKEN_KEY);
+  } else {
+    window.localStorage.setItem(SESSION_TOKEN_KEY, token);
+  }
+}
+
+// Attach the session to every request; endpoints that don't enforce auth yet
+// simply ignore it.
+api.use({
+  onRequest({ request }) {
+    const token = getSessionToken();
+    if (token) {
+      request.headers.set("Authorization", `Bearer ${token}`);
+    }
+    return request;
+  }
+});
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -28,10 +62,14 @@ async function unwrap<T>(response: {
 }): Promise<T> {
   if (response.error) {
     const detail = (response.error as { detail?: unknown } | undefined)?.detail;
-    throw new ApiError(
-      typeof detail === "string" ? detail : "FastAPI returned an error",
-      response.response.status
-    );
+    // FastAPI validation errors carry detail as a list of {loc, msg} items.
+    const message =
+      typeof detail === "string"
+        ? detail
+        : Array.isArray(detail) && typeof (detail[0] as { msg?: unknown })?.msg === "string"
+          ? (detail[0] as { msg: string }).msg
+          : "FastAPI returned an error";
+    throw new ApiError(message, response.response.status);
   }
   if (response.data === undefined) {
     throw new ApiError("FastAPI returned an empty response", response.response.status);
@@ -75,6 +113,37 @@ export async function getHealth(): Promise<HealthStatus> {
 
 export async function listUsers(): Promise<DevUser[]> {
   return unwrap(await api.GET("/users"));
+}
+
+export async function createUser(email: string): Promise<DevUser> {
+  return unwrap(await api.POST("/users", { body: { email } })) as Promise<DevUser>;
+}
+
+export type AuthSession =
+  paths["/auth/login"]["post"]["responses"][200]["content"]["application/json"];
+
+export async function login(email: string, password: string): Promise<AuthSession> {
+  const session = await unwrap(await api.POST("/auth/login", { body: { email, password } }));
+  storeSessionToken(session.token);
+  return session;
+}
+
+export async function register(email: string, password: string): Promise<AuthSession> {
+  const session = await unwrap(await api.POST("/auth/register", { body: { email, password } }));
+  storeSessionToken(session.token);
+  return session;
+}
+
+export async function logout(): Promise<void> {
+  const token = getSessionToken();
+  if (token) {
+    // Revoke server-side first (explicit header — the local copy is about to
+    // go away); drop the local token regardless of whether that succeeded.
+    await api
+      .POST("/auth/logout", { headers: { Authorization: `Bearer ${token}` } })
+      .catch(() => undefined);
+  }
+  storeSessionToken(null);
 }
 
 export async function listApplications(userId: string): Promise<ApplicationListItem[]> {

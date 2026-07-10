@@ -8,6 +8,7 @@ from app.models.answer_profile import (
     WorkAuthStatus,
 )
 from app.models.application import Application, ApplicationStatus
+from app.models.auth_session import AuthSession
 from app.models.bullet_embedding import BulletEmbedding
 from app.models.cover_letter import CoverLetter, CoverLetterTone
 from app.models.document import Document, DocumentKind
@@ -27,6 +28,7 @@ __all__ = [
     "AnswerProfile",
     "Application",
     "ApplicationStatus",
+    "AuthSession",
     "BulletEmbedding",
     "CoverLetter",
     "CoverLetterTone",
