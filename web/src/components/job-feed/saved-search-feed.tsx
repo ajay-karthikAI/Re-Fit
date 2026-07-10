@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { type SavedSearch, listMatches } from "@/lib/api";
 import { DigestHistory } from "@/components/job-feed/digest-history";
 import { MatchFilter } from "@/components/job-feed/match-filter";
+import { Pagination } from "@/components/job-feed/pagination";
 import { PostingCard } from "@/components/job-feed/posting-card";
 
 export function SavedSearchFeed({
@@ -41,11 +42,15 @@ export function SavedSearchFeed({
                 No matches at this score. Lower the bar to see more.
               </p>
             ) : (
-              <ul className="space-y-3" data-testid="posting-list">
-                {filtered.map((match) => (
-                  <PostingCard key={match.posting_id} match={match} userId={userId} />
-                ))}
-              </ul>
+              <Pagination items={filtered}>
+                {(pageItems) => (
+                  <ul className="space-y-3" data-testid="posting-list">
+                    {pageItems.map((match) => (
+                      <PostingCard key={match.posting_id} match={match} userId={userId} />
+                    ))}
+                  </ul>
+                )}
+              </Pagination>
             )
           }
         </MatchFilter>

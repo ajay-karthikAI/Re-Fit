@@ -15,6 +15,7 @@ import {
   listSourceBoards
 } from "@/lib/api";
 import { useDevUser } from "@/components/providers/dev-user-provider";
+import { Bar, ScoreBar } from "@/components/ui/score-bar";
 import { formatRelative } from "@/lib/relative-time";
 
 /* ── animation primitives (mirror the mockup's count-up + bar reveal) ── */
@@ -37,34 +38,6 @@ function useCountUp(target: number, suffix = ""): string {
     return () => cancelAnimationFrame(raf);
   }, [target, suffix]);
   return text;
-}
-
-function Bar({ pct, fill, className = "" }: { pct: number; fill: string; className?: string }) {
-  const [width, setWidth] = useState(0);
-  useEffect(() => {
-    const raf = requestAnimationFrame(() => requestAnimationFrame(() => setWidth(pct)));
-    return () => cancelAnimationFrame(raf);
-  }, [pct]);
-  return (
-    <div className={`overflow-hidden rounded-full bg-silver/[0.12] ${className}`}>
-      <div
-        className={`h-full rounded-full ${fill} transition-[width] duration-[1200ms] ease-[cubic-bezier(.22,1,.36,1)]`}
-        style={{ width: `${width}%` }}
-      />
-    </div>
-  );
-}
-
-/* ── mockup tone helpers ── */
-
-function scoreTone(score: number): { text: string; bar: string } {
-  if (score >= 85) {
-    return { text: "text-accent", bar: "bg-gold-bar" };
-  }
-  if (score >= 70) {
-    return { text: "text-silver", bar: "bg-silver-bar" };
-  }
-  return { text: "text-faint", bar: "bg-silver-bar" };
 }
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -305,36 +278,28 @@ export function AurumDashboard() {
                 and create a saved search.
               </PanelEmpty>
             ) : (
-              matches.slice(0, 5).map((posting) => {
-                const tone = scoreTone(posting.score);
-                return (
-                  <a
-                    key={posting.posting_id}
-                    href={posting.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex cursor-pointer items-center gap-3.5 border-b border-silver/[0.07] px-5 py-3.5 transition-colors duration-200 hover:bg-accent/5"
-                  >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[9px] border border-silver/[0.15] bg-silver/10 text-sm font-bold text-silver">
-                      {(posting.company_name || "?").charAt(0).toUpperCase()}
+              matches.slice(0, 5).map((posting) => (
+                <a
+                  key={posting.posting_id}
+                  href={posting.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex cursor-pointer items-center gap-3.5 border-b border-silver/[0.07] px-5 py-3.5 transition-colors duration-200 hover:bg-accent/5"
+                >
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[9px] border border-silver/[0.15] bg-silver/10 text-sm font-bold text-silver">
+                    {(posting.company_name || "?").charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="overflow-hidden text-ellipsis whitespace-nowrap text-[14.5px] font-semibold text-text">
+                      {posting.title}
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="overflow-hidden text-ellipsis whitespace-nowrap text-[14.5px] font-semibold text-text">
-                        {posting.title}
-                      </div>
-                      <div className="mt-0.5 text-[12.5px] text-faint">
-                        {posting.company_name} · {formatRelative(posting.posted_at)}
-                      </div>
+                    <div className="mt-0.5 text-[12.5px] text-faint">
+                      {posting.company_name} · {formatRelative(posting.posted_at)}
                     </div>
-                    <div className="grid w-[92px] shrink-0 justify-items-end gap-[5px]">
-                      <span className={`font-mono text-[13px] font-medium ${tone.text}`}>
-                        {Math.round(posting.score)}%
-                      </span>
-                      <Bar pct={posting.score} fill={tone.bar} className="h-[5px] w-full" />
-                    </div>
-                  </a>
-                );
-              })
+                  </div>
+                  <ScoreBar score={posting.score} />
+                </a>
+              ))
             )}
           </div>
         </section>
