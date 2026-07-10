@@ -77,6 +77,10 @@ export async function listUsers(): Promise<DevUser[]> {
   return unwrap(await api.GET("/users"));
 }
 
+export async function createUser(email: string): Promise<DevUser> {
+  return unwrap(await api.POST("/users", { body: { email } })) as Promise<DevUser>;
+}
+
 export async function listApplications(userId: string): Promise<ApplicationListItem[]> {
   return unwrap(
     await api.GET("/users/{user_id}/applications", {

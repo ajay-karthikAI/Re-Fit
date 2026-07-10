@@ -17,6 +17,11 @@ const navItems = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
+  // The landing and login pages are full-bleed heroes — no workspace chrome.
+  if (pathname === "/" || pathname === "/login") {
+    return <>{children}</>;
+  }
+
   return (
     <div className="min-h-screen bg-background text-text">
       <aside className="fixed inset-y-0 left-0 hidden w-60 flex-col gap-7 border-r border-accent/10 px-4 py-6 lg:flex">
@@ -89,7 +94,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-[1160px] px-5 py-8 lg:px-9 lg:py-10">{children}</main>
+        {/* Keyed by route so every navigation re-runs the rise-in entrance. */}
+        <main
+          key={pathname}
+          className="anim-page mx-auto w-full max-w-[1160px] px-5 py-8 lg:px-9 lg:py-10"
+        >
+          {children}
+        </main>
       </div>
     </div>
   );
