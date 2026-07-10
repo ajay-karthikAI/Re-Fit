@@ -305,7 +305,7 @@ export function AnswerProfilePanel({
               setErrors([]);
               mutation.mutate();
             }}
-            className="w-full rounded-[10px] bg-gold-gradient px-4 py-2 text-sm font-bold text-background transition enabled:hover:-translate-y-0.5 enabled:hover:shadow-gold disabled:opacity-50"
+            className="w-full rounded-[10px] bg-gold-gradient px-4 py-2 text-sm font-bold text-onaccent transition enabled:hover:-translate-y-0.5 enabled:hover:shadow-gold disabled:opacity-50"
           >
             {mutation.isPending ? "Saving…" : "Save & return to kit"}
           </button>

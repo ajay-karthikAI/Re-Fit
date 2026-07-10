@@ -73,7 +73,7 @@ export function GenerateKitButton({
       type="button"
       data-testid={`generate-kit-${postingId}`}
       onClick={() => mutation.mutate()}
-      className="rounded-[10px] bg-gold-gradient px-4 py-2 text-sm font-bold text-background transition enabled:hover:-translate-y-0.5 enabled:hover:shadow-gold"
+      className="rounded-[10px] bg-gold-gradient px-4 py-2 text-sm font-bold text-onaccent transition enabled:hover:-translate-y-0.5 enabled:hover:shadow-gold"
     >
       Generate kit
     </button>

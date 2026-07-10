@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { AppShell } from "@/components/shell/app-shell";
 import { DevUserProvider } from "@/components/providers/dev-user-provider";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
@@ -23,11 +24,13 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <DevUserProvider>
-          <AppShell>{children}</AppShell>
-        </DevUserProvider>
-      </ToastProvider>
+      <ThemeProvider>
+        <ToastProvider>
+          <DevUserProvider>
+            <AppShell>{children}</AppShell>
+          </DevUserProvider>
+        </ToastProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

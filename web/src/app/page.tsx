@@ -76,7 +76,7 @@ export default function HomePage() {
         <button
           type="button"
           onClick={openDashboard}
-          className="anim-rise mt-9 rounded-[10px] bg-gold-gradient px-6 py-3 text-[15px] font-bold text-background transition hover:-translate-y-0.5 hover:shadow-gold"
+          className="anim-rise mt-9 rounded-[10px] bg-gold-gradient px-6 py-3 text-[15px] font-bold text-onaccent transition hover:-translate-y-0.5 hover:shadow-gold"
           style={stagger(420)}
         >
           Open Dashboard

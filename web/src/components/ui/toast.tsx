@@ -2,6 +2,8 @@
 
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 
+import { useOptionalTheme } from "@/components/providers/theme-provider";
+
 type ToastVariant = "error" | "success";
 
 type Toast = {
@@ -19,6 +21,7 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 const TOAST_TTL_MS = 5000;
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const theme = useOptionalTheme();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const nextId = useRef(0);
 
@@ -40,7 +43,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {children}
       <div
         aria-live="polite"
-        className="pointer-events-none fixed bottom-5 right-5 z-50 flex w-80 flex-col gap-2"
+        data-theme={theme}
+        className="theme-scope pointer-events-none fixed bottom-5 right-5 z-50 flex w-80 flex-col gap-2"
       >
         {toasts.map((item) => (
           <div

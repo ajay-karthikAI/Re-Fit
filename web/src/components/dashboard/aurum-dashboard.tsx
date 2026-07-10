@@ -375,7 +375,7 @@ export function AurumDashboard() {
             </div>
             <Link
               href="/job-feed"
-              className="mt-[18px] block rounded-[10px] bg-gold-gradient p-3 text-center text-[14.5px] font-bold text-background transition hover:-translate-y-0.5 hover:shadow-gold"
+              className="mt-[18px] block rounded-[10px] bg-gold-gradient p-3 text-center text-[14.5px] font-bold text-onaccent transition hover:-translate-y-0.5 hover:shadow-gold"
             >
               Generate tailored kit
             </Link>

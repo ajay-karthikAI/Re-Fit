@@ -382,7 +382,7 @@ export default function ProfilePage() {
               type="submit"
               data-testid="save-profile"
               disabled={saveMutation.isPending}
-              className="rounded-[10px] bg-gold-gradient px-5 py-2.5 text-sm font-bold text-background transition enabled:hover:-translate-y-0.5 enabled:hover:shadow-gold disabled:opacity-50"
+              className="rounded-[10px] bg-gold-gradient px-5 py-2.5 text-sm font-bold text-onaccent transition enabled:hover:-translate-y-0.5 enabled:hover:shadow-gold disabled:opacity-50"
             >
               {saveMutation.isPending ? "Saving…" : "Save profile"}
             </button>

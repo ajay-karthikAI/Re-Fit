@@ -17,7 +17,7 @@ export function UserPicker() {
         {status === "checking" ? "API …" : status === "online" ? "API online" : "API offline"}
       </span>
       <label className="flex min-w-0 items-center gap-2.5 rounded-full border border-silver/[0.18] py-1.5 pl-1.5 pr-3">
-        <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-silver-mark text-xs font-bold text-background">
+        <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-silver-mark text-xs font-bold text-onaccent">
           D
         </span>
         <span className="hidden text-sm text-silver sm:inline">Dev user</span>

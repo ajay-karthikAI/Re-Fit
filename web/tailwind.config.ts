@@ -20,7 +20,8 @@ const config: Config = {
         silver: "rgb(var(--color-silver) / <alpha-value>)",
         accent: "rgb(var(--color-accent) / <alpha-value>)",
         success: "rgb(var(--color-success) / <alpha-value>)",
-        danger: "rgb(var(--color-danger) / <alpha-value>)"
+        danger: "rgb(var(--color-danger) / <alpha-value>)",
+        onaccent: "rgb(var(--color-onaccent) / <alpha-value>)"
       },
       fontFamily: {
         sans: ["var(--font-ui)", "Space Grotesk", "system-ui", "sans-serif"],
