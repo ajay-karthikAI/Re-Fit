@@ -4,15 +4,18 @@
 
 :root {
   color-scheme: dark;
-  --color-background: 11 13 16;
-  --color-surface: 17 20 25;
-  --color-muted: 24 28 35;
-  --color-border: 45 51 61;
-  --color-text: 237 241 247;
-  --color-subdued: 151 160 174;
-  --color-accent: 34 197 170;
-  --font-ui: Inter, Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Consolas, monospace;
+  /* Aurum palette: warm near-black, gold accent, metallic silver */
+  --color-background: 11 10 8; /* #0B0A08 */
+  --color-surface: 21 19 15;
+  --color-muted: 29 26 20;
+  --color-border: 37 37 36; /* rgba(200,205,211,.14) flattened onto bg */
+  --color-text: 237 234 226; /* #EDEAE2 */
+  --color-subdued: 168 167 159; /* #A8A79F */
+  --color-faint: 110 109 102; /* #6E6D66 */
+  --color-silver: 201 205 211; /* #C9CDD3 */
+  --color-accent: 232 196 107; /* #E8C46B gold */
+  --color-success: 143 191 122; /* #8FBF7A */
+  --color-danger: 201 106 91; /* #C96A5B */
 }
 
 * {
@@ -28,7 +31,7 @@ body {
 body {
   margin: 0;
   color: rgb(var(--color-text));
-  font-family: var(--font-ui);
+  font-family: var(--font-ui, "Space Grotesk", sans-serif);
   text-rendering: optimizeLegibility;
 }
 
@@ -45,5 +48,6 @@ textarea {
 }
 
 ::selection {
-  background: rgb(var(--color-accent) / 0.28);
+  background: rgb(var(--color-accent));
+  color: rgb(var(--color-background));
 }

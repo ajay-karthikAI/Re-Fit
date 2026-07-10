@@ -25,7 +25,7 @@ function BulletPair({ change }: { change: Change }) {
         <span className="font-mono text-[10px] text-subdued">{change.ref}</span>
         <RequirementTag requirement={change.requirement_targeted} />
       </div>
-      <p className="rounded bg-red-950/20 px-2 py-1 text-sm text-red-200/80 line-through decoration-red-400/40">
+      <p className="rounded bg-danger/10 px-2 py-1 text-sm text-danger/80 line-through decoration-red-400/40">
         {before}
       </p>
       <p className="mt-1 rounded bg-accent/10 px-2 py-1 text-sm text-text">{after}</p>

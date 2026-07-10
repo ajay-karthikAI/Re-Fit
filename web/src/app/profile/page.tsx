@@ -68,10 +68,10 @@ function Field({
         onChange={(event) => onChange(event.target.value)}
         className={[
           "mt-1 w-full rounded-md border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-accent",
-          error ? "border-red-500/60" : "border-border"
+          error ? "border-danger/60" : "border-border"
         ].join(" ")}
       />
-      {error ? <span className="mt-1 block text-xs text-red-300">{error}</span> : null}
+      {error ? <span className="mt-1 block text-xs text-danger">{error}</span> : null}
     </label>
   );
 }
@@ -255,7 +255,7 @@ export default function ProfilePage() {
                 className="mt-1 h-20 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-accent"
               />
               {errors["summary"] ? (
-                <span className="mt-1 block text-xs text-red-300">{errors["summary"]}</span>
+                <span className="mt-1 block text-xs text-danger">{errors["summary"]}</span>
               ) : null}
             </label>
           </fieldset>
@@ -330,12 +330,12 @@ export default function ProfilePage() {
                     className={[
                       "mt-1 h-28 w-full rounded-md border bg-background px-3 py-2 text-sm text-text outline-none focus:border-accent",
                       errors[`experience.${index}.bullets`]
-                        ? "border-red-500/60"
+                        ? "border-danger/60"
                         : "border-border"
                     ].join(" ")}
                   />
                   {errors[`experience.${index}.bullets`] ? (
-                    <span className="mt-1 block text-xs text-red-300">
+                    <span className="mt-1 block text-xs text-danger">
                       {errors[`experience.${index}.bullets`]}
                     </span>
                   ) : null}
@@ -382,12 +382,12 @@ export default function ProfilePage() {
               type="submit"
               data-testid="save-profile"
               disabled={saveMutation.isPending}
-              className="rounded-md bg-accent px-5 py-2.5 text-sm font-semibold text-background transition hover:bg-accent/90 disabled:opacity-50"
+              className="rounded-[10px] bg-gold-gradient px-5 py-2.5 text-sm font-bold text-background transition enabled:hover:-translate-y-0.5 enabled:hover:shadow-gold disabled:opacity-50"
             >
               {saveMutation.isPending ? "Saving…" : "Save profile"}
             </button>
             {Object.keys(errors).length > 0 ? (
-              <span className="text-xs text-red-300">
+              <span className="text-xs text-danger">
                 {Object.keys(errors).length} field(s) need fixing.
               </span>
             ) : null}

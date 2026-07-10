@@ -59,7 +59,7 @@ export function StatusControl({ status, onChange, disabled }: StatusControlProps
                 "rounded px-2 py-1 text-xs transition disabled:opacity-50",
                 active
                   ? option === "rejected"
-                    ? "bg-red-950/60 text-red-200"
+                    ? "bg-danger/15 text-danger"
                     : "bg-muted text-accent"
                   : "text-subdued hover:text-text"
               ].join(" ")}

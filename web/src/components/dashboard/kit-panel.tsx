@@ -89,7 +89,7 @@ function FollowupCard({ followup }: { followup: KitFollowup }) {
             className={[
               "rounded px-1.5 py-0.5 font-mono text-[11px]",
               due === "overdue"
-                ? "bg-red-950/60 text-red-300"
+                ? "bg-danger/15 text-danger"
                 : due === "due"
                   ? "bg-accent/15 text-accent"
                   : "text-subdued"
@@ -159,7 +159,7 @@ export function KitPanel({ application }: { application: ApplicationListItem }) 
   }
   if (kitQuery.error || !kitQuery.data) {
     return (
-      <p className="p-5 text-sm text-red-300">
+      <p className="p-5 text-sm text-danger">
         Could not load the kit for this application.
       </p>
     );
@@ -232,7 +232,7 @@ export function KitPanel({ application }: { application: ApplicationListItem }) 
             <p
               className={[
                 "mt-2 text-xs",
-                kit.cover_letter.claims.passed ? "text-accent" : "text-red-300"
+                kit.cover_letter.claims.passed ? "text-accent" : "text-danger"
               ].join(" ")}
             >
               {kit.cover_letter.claims.passed

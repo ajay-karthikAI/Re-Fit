@@ -85,12 +85,12 @@ export function FieldRow({
 
       {/* A generated short answer that failed verification, surfaced not dropped. */}
       {field.status === "error" ? (
-        <div className="mt-1 rounded-md border border-red-500/40 bg-red-950/20 px-3 py-2 text-xs text-red-200">
+        <div className="mt-1 rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-xs text-danger">
           Couldn&apos;t generate this answer: {field.error ?? "unknown error"}.{" "}
           <button
             type="button"
             onClick={() => onRegenerate?.(key)}
-            className="underline underline-offset-2 hover:text-red-100"
+            className="underline underline-offset-2 hover:text-danger"
           >
             Try again
           </button>
@@ -103,7 +103,7 @@ export function FieldRow({
           type="button"
           data-testid={`fill-${key}`}
           onClick={() => onFillGap?.(field)}
-          className="mt-1 inline-flex items-center gap-1 rounded-md border border-amber-500/40 bg-amber-950/20 px-3 py-1.5 text-xs text-amber-200 transition hover:border-amber-400/60"
+          className="mt-1 inline-flex items-center gap-1 rounded-md border border-accent/40 bg-accent/[0.06] px-3 py-1.5 text-xs text-accent transition hover:border-accent/60"
         >
           Add this to your answer profile →
         </button>

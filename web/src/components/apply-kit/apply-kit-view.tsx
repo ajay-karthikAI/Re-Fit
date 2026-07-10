@@ -77,7 +77,7 @@ export function ApplyKitView({ jobTargetId }: { jobTargetId: string }) {
 
   if (kitQuery.error || !kitQuery.data) {
     return (
-      <div className="rounded-md border border-red-500/40 bg-red-950/20 p-4 text-sm text-red-200">
+      <div className="rounded-md border border-danger/40 bg-danger/10 p-4 text-sm text-danger">
         Couldn&apos;t assemble the apply kit: {(kitQuery.error as Error)?.message ?? "unknown error"}
       </div>
     );
@@ -100,7 +100,7 @@ export function ApplyKitView({ jobTargetId }: { jobTargetId: string }) {
               rel="noreferrer"
               data-testid="open-posting"
               onClick={() => timer.start()}
-              className="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-semibold text-background transition hover:bg-accent/90"
+              className="inline-flex items-center gap-2 rounded-[10px] bg-gold-gradient px-4 py-2 text-sm font-bold text-background transition hover:-translate-y-0.5 hover:shadow-gold"
             >
               ↗ Open posting
             </a>

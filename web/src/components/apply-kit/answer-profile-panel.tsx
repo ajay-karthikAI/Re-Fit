@@ -290,7 +290,7 @@ export function AnswerProfilePanel({
           </div>
 
           {errors.length > 0 ? (
-            <div className="rounded-md border border-red-500/40 bg-red-950/20 px-3 py-2 text-xs text-red-200">
+            <div className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-xs text-danger">
               {errors.join("; ")}
             </div>
           ) : null}
@@ -305,7 +305,7 @@ export function AnswerProfilePanel({
               setErrors([]);
               mutation.mutate();
             }}
-            className="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-background transition hover:bg-accent/90 disabled:opacity-50"
+            className="w-full rounded-[10px] bg-gold-gradient px-4 py-2 text-sm font-bold text-background transition enabled:hover:-translate-y-0.5 enabled:hover:shadow-gold disabled:opacity-50"
           >
             {mutation.isPending ? "Saving…" : "Save & return to kit"}
           </button>

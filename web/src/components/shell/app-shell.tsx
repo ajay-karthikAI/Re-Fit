@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { PlanCard } from "@/components/dashboard/aurum-dashboard";
 import { UserPicker } from "@/components/shell/user-picker";
 
 const navItems = [
@@ -18,34 +19,49 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background text-text">
-      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-border bg-surface px-5 py-6 lg:block">
-        <Link href="/dashboard" className="block">
-          <span className="font-mono text-xs uppercase tracking-[0.22em] text-accent">Re-Fit</span>
-          <span className="mt-3 block text-xl font-semibold">Application kits</span>
+      <aside className="fixed inset-y-0 left-0 hidden w-60 flex-col gap-7 border-r border-accent/10 px-4 py-6 lg:flex">
+        <Link href="/dashboard" className="flex items-center gap-2.5 px-2">
+          {/* 220×128 transparent cutout in public/logo.png — rendered at half
+              size so it stays crisp on retina displays. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="Re-Fit" className="h-9 w-auto shrink-0" />
+          <span>
+            <span className="block text-base font-bold tracking-[0.04em]">RE-FIT</span>
+            <span className="block font-mono text-[10.5px] text-faint">APPLICATION KITS</span>
+          </span>
         </Link>
-        <nav className="mt-10 space-y-1">
-          {navItems.map((item) => {
+        <nav className="grid gap-1">
+          {navItems.map((item, index) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={[
-                  "block rounded-md px-3 py-2 text-sm transition",
+                  "flex items-center gap-3 rounded-[10px] border px-3 py-2.5 text-sm font-medium transition",
                   active
-                    ? "bg-muted text-text"
-                    : "text-subdued hover:bg-muted/70 hover:text-text"
+                    ? "border-accent/30 bg-accent/[0.08] text-accent"
+                    : "border-transparent text-subdued hover:bg-accent/[0.08] hover:text-accent"
                 ].join(" ")}
               >
+                <span
+                  className={[
+                    "font-mono text-[11px]",
+                    active ? "text-accent" : "text-faint"
+                  ].join(" ")}
+                >
+                  {String(index + 1).padStart(2, "0")}
+                </span>
                 {item.label}
               </Link>
             );
           })}
         </nav>
+        <PlanCard />
       </aside>
 
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-10 border-b border-border bg-background/95 px-5 py-4 backdrop-blur lg:px-8">
+      <div className="lg:pl-60">
+        <header className="sticky top-0 z-10 border-b border-accent/10 bg-background/95 px-5 py-4 backdrop-blur lg:px-8">
           <div className="flex items-center justify-between gap-4">
             <nav className="flex gap-1 overflow-x-auto lg:hidden">
               {navItems.map((item) => {
@@ -55,8 +71,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     key={item.href}
                     href={item.href}
                     className={[
-                      "whitespace-nowrap rounded-md px-3 py-2 text-sm",
-                      active ? "bg-muted text-text" : "text-subdued"
+                      "whitespace-nowrap rounded-[10px] border px-3 py-2 text-sm",
+                      active
+                        ? "border-accent/30 bg-accent/[0.08] text-accent"
+                        : "border-transparent text-subdued"
                     ].join(" ")}
                   >
                     {item.label}
@@ -65,13 +83,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               })}
             </nav>
             <div className="hidden min-w-0 lg:block">
-              <p className="font-mono text-xs text-subdued">localhost workspace</p>
+              <p className="font-mono text-xs text-faint">localhost workspace</p>
             </div>
             <UserPicker />
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-6xl px-5 py-8 lg:px-8 lg:py-10">{children}</main>
+        <main className="mx-auto w-full max-w-[1160px] px-5 py-8 lg:px-9 lg:py-10">{children}</main>
       </div>
     </div>
   );

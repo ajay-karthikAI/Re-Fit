@@ -1,17 +1,20 @@
 import { ApplicationsTable } from "@/components/dashboard/applications-table";
+import { AurumDashboard } from "@/components/dashboard/aurum-dashboard";
 
 export default function DashboardPage() {
   return (
-    <section className="space-y-6">
-      <div>
-        <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">Dashboard</p>
-        <h1 className="mt-3 text-3xl font-semibold text-text">Application tracker</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-subdued">
-          Every application records exactly which resume version went out — expand a row to see
-          the full kit: tailored resume, verified cover letter, and follow-ups.
-        </p>
-      </div>
-      <ApplicationsTable />
-    </section>
+    <div className="space-y-10">
+      <AurumDashboard />
+      <section className="space-y-4">
+        <div>
+          <p className="font-mono text-xs tracking-[0.14em] text-accent">APPLICATION TRACKER</p>
+          <p className="mt-1.5 text-[13px] text-subdued">
+            Every application records exactly which resume version went out — expand a row for
+            the full kit.
+          </p>
+        </div>
+        <ApplicationsTable />
+      </section>
+    </div>
   );
 }
