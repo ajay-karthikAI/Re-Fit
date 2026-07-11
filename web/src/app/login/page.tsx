@@ -153,7 +153,7 @@ export default function LoginPage() {
                   className={[
                     "rounded-lg px-3.5 py-1.5 text-[13px] font-semibold transition",
                     mode === value
-                      ? "bg-gold-gradient text-background"
+                      ? "bg-gold-gradient text-onaccent"
                       : "text-subdued hover:text-text"
                   ].join(" ")}
                 >
@@ -196,7 +196,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={pending}
-            className="mt-6 w-full rounded-[10px] bg-gold-gradient px-4 py-3 text-[15px] font-bold text-background transition enabled:hover:-translate-y-0.5 enabled:hover:shadow-gold disabled:opacity-60"
+            className="mt-6 w-full rounded-[10px] bg-gold-gradient px-4 py-3 text-[15px] font-bold text-onaccent transition enabled:hover:-translate-y-0.5 enabled:hover:shadow-gold disabled:opacity-60"
           >
             {pending
               ? mode === "login"

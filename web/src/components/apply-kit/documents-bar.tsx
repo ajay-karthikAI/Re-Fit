@@ -22,7 +22,7 @@ export function DocumentsBar({ documents }: { documents: ApplyKitDocument[] }) {
           className={[
             "inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition",
             doc.ready
-              ? "bg-accent text-background hover:bg-accent/90"
+              ? "bg-accent text-onaccent hover:bg-accent/90"
               : "pointer-events-none bg-surface text-subdued"
           ].join(" ")}
         >

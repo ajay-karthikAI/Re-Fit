@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { PlanCard } from "@/components/dashboard/aurum-dashboard";
+import { useTheme } from "@/components/providers/theme-provider";
+import { ThemeToggle } from "@/components/shell/theme-toggle";
 import { UserPicker } from "@/components/shell/user-picker";
 
 const navItems = [
@@ -16,6 +18,7 @@ const navItems = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { theme } = useTheme();
 
   // The landing and login pages are full-bleed heroes — no workspace chrome.
   if (pathname === "/" || pathname === "/login") {
@@ -23,13 +26,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-background text-text">
+    <div
+      data-theme={theme}
+      className="theme-scope min-h-screen bg-background text-text"
+    >
       <aside className="fixed inset-y-0 left-0 hidden w-60 flex-col gap-7 border-r border-accent/10 px-4 py-6 lg:flex">
         <Link href="/dashboard" className="flex items-center gap-2.5 px-2">
-          {/* 220×128 transparent cutout in public/logo.png — rendered at half
-              size so it stays crisp on retina displays. */}
+          {/* 220×128 transparent cutouts in public/ — the light variant has a
+              tighter edge (no glow-halo bleed) so it stays crisp on a light
+              page; rendered at half size so both stay sharp on retina. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Re-Fit" className="h-9 w-auto shrink-0" />
+          <img
+            src={theme === "light" ? "/logo-light.png" : "/logo.png"}
+            alt="Re-Fit"
+            className="h-9 w-auto shrink-0"
+          />
           <span>
             <span className="block text-base font-bold tracking-[0.04em]">RE-FIT</span>
             <span className="block font-mono text-[10.5px] text-faint">APPLICATION KITS</span>
@@ -90,7 +101,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="hidden min-w-0 lg:block">
               <p className="font-mono text-xs text-faint">localhost workspace</p>
             </div>
-            <UserPicker />
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <UserPicker />
+            </div>
           </div>
         </header>
 

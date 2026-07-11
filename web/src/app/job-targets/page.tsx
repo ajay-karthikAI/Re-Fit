@@ -80,7 +80,7 @@ function NewJobTargetForm({ userId, onCreated }: { userId: string; onCreated: ()
         type="submit"
         data-testid="create-job-target"
         disabled={mutation.isPending || !form.raw_description.trim()}
-        className="rounded-[10px] bg-gold-gradient px-4 py-2 text-sm font-bold text-background transition enabled:hover:-translate-y-0.5 enabled:hover:shadow-gold disabled:opacity-50"
+        className="rounded-[10px] bg-gold-gradient px-4 py-2 text-sm font-bold text-onaccent transition enabled:hover:-translate-y-0.5 enabled:hover:shadow-gold disabled:opacity-50"
       >
         {mutation.isPending ? "Creating…" : "Create job target"}
       </button>

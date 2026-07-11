@@ -100,7 +100,7 @@ export function ApplyKitView({ jobTargetId }: { jobTargetId: string }) {
               rel="noreferrer"
               data-testid="open-posting"
               onClick={() => timer.start()}
-              className="inline-flex items-center gap-2 rounded-[10px] bg-gold-gradient px-4 py-2 text-sm font-bold text-background transition hover:-translate-y-0.5 hover:shadow-gold"
+              className="inline-flex items-center gap-2 rounded-[10px] bg-gold-gradient px-4 py-2 text-sm font-bold text-onaccent transition hover:-translate-y-0.5 hover:shadow-gold"
             >
               ↗ Open posting
             </a>

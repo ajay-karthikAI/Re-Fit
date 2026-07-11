@@ -16,6 +16,35 @@
   --color-accent: 232 196 107; /* #E8C46B gold */
   --color-success: 143 191 122; /* #8FBF7A */
   --color-danger: 201 106 91; /* #C96A5B */
+  /* Text painted onto an accent-colored fill (gold-gradient/silver-mark
+     buttons, avatar chips). Deliberately theme-invariant — near-black reads
+     fine on both the pale dark-mode gold and the deeper light-mode gold, so
+     it does not need a light-mode override the way --color-background does. */
+  --color-onaccent: 11 10 8;
+}
+
+/* Native form controls / scrollbars only. Kept separate from the design
+   tokens below so it can be set at the document root without leaking the
+   light palette into the landing hero and login page, which render outside
+   any `.theme-scope` element and must stay on the dark Aurum palette. */
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* Light-theme design tokens. Scoped to `.theme-scope` (the app-shell wrapper
+   and the toast container) rather than :root — see above. */
+.theme-scope[data-theme="light"] {
+  --color-background: 244 244 245; /* #F4F4F5 */
+  --color-surface: 249 249 250; /* #F9F9FA — input wells, hover rows */
+  --color-muted: 255 255 255; /* #FFFFFF — card/panel background */
+  --color-border: 228 228 231; /* #E4E4E7 */
+  --color-text: 24 24 27; /* #18181B */
+  --color-subdued: 82 82 91; /* #52525B */
+  --color-faint: 143 143 150; /* #8F8F96 */
+  --color-silver: 113 113 122; /* #71717A */
+  --color-accent: 176 122 27; /* #B07A1B — deeper gold, AA on white */
+  --color-success: 21 128 61; /* #15803D */
+  --color-danger: 190 40 40; /* #BE2828 */
 }
 
 * {

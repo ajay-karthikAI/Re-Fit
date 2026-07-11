@@ -153,7 +153,7 @@ export function GeneratePanel({
         type="button"
         data-testid="generate-kit"
         onClick={() => mutation.mutate()}
-        className="mt-5 rounded-[10px] bg-gold-gradient px-5 py-2.5 text-sm font-bold text-background transition enabled:hover:-translate-y-0.5 enabled:hover:shadow-gold"
+        className="mt-5 rounded-[10px] bg-gold-gradient px-5 py-2.5 text-sm font-bold text-onaccent transition enabled:hover:-translate-y-0.5 enabled:hover:shadow-gold"
       >
         Generate kit
       </button>
